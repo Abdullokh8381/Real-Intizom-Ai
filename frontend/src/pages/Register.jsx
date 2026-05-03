@@ -28,7 +28,8 @@ export default function Register() {
     if (result.success) {
       toast.success("Hisob yaratildi!");
     } else {
-      toast.error(result.error);
+      // toast.error(result.error);
+      // Bu ortiqcha, chunki AuthContext o'zi chiqaradi
     }
     setLoading(false);
   }

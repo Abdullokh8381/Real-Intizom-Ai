@@ -19,7 +19,7 @@ export default function Login() {
     if (result.success) {
       toast.success("Xush kelibsiz!");
     } else {
-      toast.error(result.error);
+      // toast.error(result.error);
     }
     setLoading(false);
   }
