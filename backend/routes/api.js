@@ -45,8 +45,8 @@ router.post('/auth/google', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Google identifikatsiya xatosi" });
+    console.error("GOOGLE AUTH ERROR:", err.message);
+    res.status(500).json({ error: "Google identifikatsiya xatosi: " + err.message });
   }
 });
 
