@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { LogIn, Leaf, Eye, EyeOff } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 
 export default function Login() {
-  var { login } = useAuth();
+  var { login, googleLogin } = useAuth();
   var [email, setEmail] = useState("");
   var [password, setPassword] = useState("");
   var [showPw, setShowPw] = useState(false);
@@ -81,6 +82,27 @@ export default function Login() {
               {loading ? "Kirish..." : "Kirish"}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+            <span className="text-xs text-gray-400 uppercase font-bold tracking-widest">Yoki</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                googleLogin(credentialResponse.credential);
+              }}
+              onError={() => {
+                toast.error("Google orqali kirishda xato yuz berdi");
+              }}
+              useOneTap
+              theme="filled_blue"
+              shape="pill"
+              text="continue_with"
+            />
+          </div>
 
           <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             {"Hisobingiz yo'qmi? "}
