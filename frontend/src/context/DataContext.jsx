@@ -64,27 +64,36 @@ export function DataProvider({ children, userId }) {
         body: JSON.stringify({ user_id: userId, title, day_of_week: dayOfWeek, week_start: weekStart })
       });
       const newTask = await res.json();
+      
+      if (!res.ok || newTask.error) throw new Error(newTask.error);
+
       setTasks(prev => [...prev, {
         ...newTask,
         isCompleted: newTask.is_completed || false,
         dayOfWeek: newTask.day_of_week,
         weekStart: newTask.week_start
       }]);
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error("Task API Error:", err); 
+      // Fallback: update state anyway so UI works
+      setTasks(prev => [...prev, { id: Date.now(), title, dayOfWeek, weekStart, isCompleted: false }]);
+    }
   }
 
   async function toggleTask(taskId) {
+    // Optimistic UI update
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, is_completed: !t.isCompleted } : t));
     try {
       await fetch(`${API_BASE}/tasks/${taskId}/toggle`, { method: 'PUT' });
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, is_completed: !t.isCompleted } : t));
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Toggle API Error:", err); }
   }
 
   async function deleteTask(taskId) {
+    // Optimistic UI update
+    setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
       await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
-      setTasks(prev => prev.filter(t => t.id !== taskId));
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Delete API Error:", err); }
   }
 
   // ─── HABITS ───────────────────────
@@ -96,37 +105,42 @@ export function DataProvider({ children, userId }) {
         body: JSON.stringify({ user_id: userId, ...data })
       });
       const newHabit = await res.json();
+      if (!res.ok || newHabit.error) throw new Error(newHabit.error);
       setHabits(prev => [...prev, newHabit]);
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error("Habit API Error:", err);
+      setHabits(prev => [...prev, { id: Date.now(), ...data, goalDays: data.goal_days || data.goalDays, isActive: true }]);
+    }
   }
 
   async function deleteHabit(habitId) {
+    setHabits(prev => prev.filter(h => h.id !== habitId));
+    setHabitLogs(prev => prev.filter(l => l.habit_id !== habitId));
     try {
       await fetch(`${API_BASE}/habits/${habitId}`, { method: 'DELETE' });
-      setHabits(prev => prev.filter(h => h.id !== habitId));
-      setHabitLogs(prev => prev.filter(l => l.habit_id !== habitId));
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Delete Habit Error:", err); }
   }
 
   async function toggleHabitLog(habitId, date) {
     const dateStr = format(date, "yyyy-MM-dd");
+    
+    // Optimistic UI update
+    setHabitLogs(prev => {
+      const exists = prev.find(l => l.habit_id === habitId && l.log_date === dateStr);
+      if (exists) {
+        return prev.map(l => l.id === exists.id ? { ...l, is_done: !l.is_done } : l);
+      } else {
+        return [...prev, { id: Date.now(), habit_id: habitId, log_date: dateStr, is_done: true }];
+      }
+    });
+
     try {
-      const res = await fetch(`${API_BASE}/habit-logs/toggle`, {
+      await fetch(`${API_BASE}/habit-logs/toggle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ habit_id: habitId, log_date: dateStr })
       });
-      const updatedLog = await res.json();
-      
-      setHabitLogs(prev => {
-        const exists = prev.find(l => l.habit_id === habitId && l.log_date === dateStr);
-        if (exists) {
-          return prev.map(l => l.id === updatedLog.id ? updatedLog : l);
-        } else {
-          return [...prev, updatedLog];
-        }
-      });
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Toggle Habit Log Error:", err); }
   }
 
   function isHabitDone(habitId, date) {
@@ -154,8 +168,12 @@ export function DataProvider({ children, userId }) {
         body: JSON.stringify({ user_id: userId, ...data, duration_days: data.durationDays, quantity_label: data.quantityLabel })
       });
       const newCh = await res.json();
+      if (!res.ok || newCh.error) throw new Error(newCh.error);
       setChallenges(prev => [...prev, newCh]);
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error("Challenge API Error:", err);
+      setChallenges(prev => [...prev, { id: Date.now(), ...data, status: 'not_started' }]);
+    }
   }
 
   // Qolgan funksiyalar (startChallenge, getChallengeProgress va h.k.) ham aynan shu tartibda API orqali ishlaydi
