@@ -38,7 +38,10 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ token: credential })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        if (data.error) toast.error(data.error);
+        throw new Error(data.error);
+      }
 
       localStorage.setItem("intizom_user", JSON.stringify(data.user));
       localStorage.setItem("intizom_token", data.token);
@@ -59,7 +62,10 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        if (data.error) toast.error(data.error);
+        throw new Error(data.error);
+      }
 
       localStorage.setItem("intizom_user", JSON.stringify(data.user));
       localStorage.setItem("intizom_token", data.token);
@@ -81,7 +87,10 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email, password, full_name })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        if (data.error) toast.error(data.error);
+        throw new Error(data.error);
+      }
 
       localStorage.setItem("intizom_user", JSON.stringify(data.user));
       localStorage.setItem("intizom_token", data.token);
