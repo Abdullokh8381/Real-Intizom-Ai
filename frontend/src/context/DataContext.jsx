@@ -30,10 +30,12 @@ export function DataProvider({ children, userId }) {
         fetch(`${API_BASE}/habit-logs/${userId}`).then(r => r.json()),
         fetch(`${API_BASE}/challenges/${userId}`).then(r => r.json())
       ]);
-      setTasks(Array.isArray(tRes) ? tRes : []);
-      setHabits(Array.isArray(hRes) ? hRes : []);
-      setHabitLogs(Array.isArray(lRes) ? lRes : []);
-      setChallenges(Array.isArray(cRes) ? cRes : []);
+      
+      // Ma'lumotlarni camelCase formatiga o'tkazamiz
+      setTasks(Array.isArray(tRes) ? tRes.map(t => ({ ...t, isCompleted: t.is_completed, dayOfWeek: t.day_of_week, weekStart: t.week_start })) : []);
+      setHabits(Array.isArray(hRes) ? hRes.map(h => ({ ...h, goalDays: h.goal_days, isActive: h.is_active })) : []);
+      setHabitLogs(Array.isArray(lRes) ? lRes.map(l => ({ ...l, habitId: l.habit_id, logDate: l.log_date, isDone: l.is_done })) : []);
+      setChallenges(Array.isArray(cRes) ? cRes.map(c => ({ ...c, durationDays: c.duration_days, quantityLabel: c.quantity_label, startDate: c.start_date, endDate: c.end_date })) : []);
     } catch (err) {
       console.error("Ma'lumot yuklashda xato:", err);
     } finally {
