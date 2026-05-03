@@ -147,6 +147,17 @@ router.post('/habits', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+router.put('/habits/:id', authenticateToken, async (req, res) => {
+  try {
+    const { name, color, priority, goal_days } = req.body;
+    const result = await db.query(
+      'UPDATE habits SET name = $1, color = $2, priority = $3, goal_days = $4 WHERE id = $5 RETURNING *',
+      [name, color, priority, goal_days, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 router.delete('/habits/:id', authenticateToken, async (req, res) => {
   try {
     await db.query('DELETE FROM habits WHERE id = $1', [req.params.id]);

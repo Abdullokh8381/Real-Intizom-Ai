@@ -97,6 +97,18 @@ export function DataProvider({ children, userId, token }) {
     } catch (err) { console.error(err); }
   }
 
+  async function updateHabit(habitId, data) {
+    try {
+      const res = await fetch(`${API_BASE}/habits/${habitId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ name: data.name, color: data.color, priority: data.priority, goal_days: data.goalDays })
+      });
+      const updated = await res.json();
+      setHabits(prev => prev.map(h => h.id === habitId ? { ...updated, goalDays: updated.goal_days, isActive: updated.is_active } : h));
+    } catch (err) { console.error(err); }
+  }
+
   async function deleteHabit(habitId) {
     try {
       setHabits(prev => prev.filter(h => h.id !== habitId));
@@ -155,7 +167,7 @@ export function DataProvider({ children, userId, token }) {
   const value = {
     tasks, habits, habitLogs, challenges, loading,
     addTask, toggleTask, deleteTask, getDayStats,
-    addHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
+    addHabit, updateHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
   };
