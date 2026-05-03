@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 font-['Inter',sans-serif];
+  }
+  .dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm transition-all;
+  }
+  .card-compact {
+    @apply card p-4;
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all active:scale-95 disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 shadow-sm shadow-primary-500/20;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all;
+  }
+
+  .page-transition {
+    @apply animate-[fadeIn_0.3s_ease-out];
+  }
+
+  .day-card {
+    @apply relative border rounded-2xl p-4 transition-all hover:shadow-md;
+  }
+  
+  .day-card.today {
+    @apply bg-primary-50/50 dark:bg-primary-900/10 border-primary-200 dark:border-primary-900;
+  }
+
+  .task-completed {
+    @apply line-through text-gray-400 dark:text-gray-500;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 dark:bg-gray-800 rounded-full;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.habit-check {
+  @apply w-5 h-5 rounded-lg border-2 border-gray-300 dark:border-gray-600 checked:bg-primary-500 checked:border-primary-500 transition-all cursor-pointer appearance-none relative;
+}
+.habit-check:checked::after {
+  content: '✓';
+  @apply absolute inset-0 flex items-center justify-center text-white text-xs font-bold;
+}
+
+.progress-bar {
+  @apply rounded-full transition-all duration-500;
+}
+
+.modal-overlay {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
