@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 const AuthContext = createContext(null);
+const API_BASE = "https://intizom-backend-ibcz.onrender.com/api";
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
@@ -31,7 +32,7 @@ export function AuthProvider({ children }) {
 
   async function googleLogin(credential) {
     try {
-      const res = await fetch("https://intizom-backend-ibcz.onrender.com/api/auth/google", {
+      const res = await fetch(`${API_BASE}/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credential })
@@ -39,7 +40,6 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      // Moliyachi loyihasidagidek tokenni va foydalanuvchini saqlaymiz
       localStorage.setItem("intizom_user", JSON.stringify(data.user));
       localStorage.setItem("intizom_token", data.token);
       setUser(data.user);
@@ -48,6 +48,50 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error(err);
       toast.error("Xatolik: " + err.message);
+    }
+  }
+
+  async function login(email, password) {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      localStorage.setItem("intizom_user", JSON.stringify(data.user));
+      localStorage.setItem("intizom_token", data.token);
+      setUser(data.user);
+      setToken(data.token);
+      toast.success("Kirish muvaffaqiyatli!");
+      return { success: true };
+    } catch (err) {
+      toast.error(err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  async function register(email, password, full_name) {
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, full_name })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      localStorage.setItem("intizom_user", JSON.stringify(data.user));
+      localStorage.setItem("intizom_token", data.token);
+      setUser(data.user);
+      setToken(data.token);
+      toast.success("Ro'yxatdan o'tdingiz!");
+      return { success: true };
+    } catch (err) {
+      toast.error(err.message);
+      return { success: false, error: err.message };
     }
   }
 
@@ -65,7 +109,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, logout, updateProfile, googleLogin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );
