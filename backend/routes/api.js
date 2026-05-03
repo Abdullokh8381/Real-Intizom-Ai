@@ -26,20 +26,18 @@ const authenticateToken = (req, res, next) => {
 router.post('/auth/register', async (req, res) => {
   try {
     const { email, password, full_name } = req.body;
-    
     const existing = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (existing.rows.length > 0) return res.status(400).json({ error: "Bu email allaqachon mavjud" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await db.query(
-      'INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [full_name, email, hashedPassword]
     );
     
     const userData = result.rows[0];
     const jwtToken = jwt.sign({ id: userData.id, email: userData.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
-
-    res.json({ token: jwtToken, user: { id: userData.id, full_name: userData.full_name, email: userData.email } });
+    res.json({ token: jwtToken, user: { id: userData.id, name: userData.name, email: userData.email } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -49,7 +47,6 @@ router.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    
     if (result.rows.length === 0) return res.status(400).json({ error: "Email yoki parol xato" });
     
     const userData = result.rows[0];
@@ -57,7 +54,7 @@ router.post('/auth/login', async (req, res) => {
     if (!validPassword) return res.status(400).json({ error: "Email yoki parol xato" });
 
     const jwtToken = jwt.sign({ id: userData.id, email: userData.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token: jwtToken, user: { id: userData.id, full_name: userData.full_name, email: userData.email } });
+    res.json({ token: jwtToken, user: { id: userData.id, name: userData.name, email: userData.email } });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -74,18 +71,16 @@ router.post('/auth/google', async (req, res) => {
     const { email, name } = payload;
 
     let user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    
     if (user.rows.length === 0) {
       user = await db.query(
-        'INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
         [name, email, 'google_auth_placeholder']
       );
     }
     
     const userData = user.rows[0];
     const jwtToken = jwt.sign({ id: userData.id, email: userData.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
-
-    res.json({ token: jwtToken, user: { id: userData.id, full_name: userData.full_name, email: userData.email } });
+    res.json({ token: jwtToken, user: { id: userData.id, name: userData.name, email: userData.email } });
   } catch (err) {
     console.error("GOOGLE AUTH ERROR:", err.message);
     res.status(500).json({ error: "Google identifikatsiya xatosi: " + err.message });
@@ -94,7 +89,7 @@ router.post('/auth/google', async (req, res) => {
 
 router.get('/status', (req, res) => res.json({ status: 'ok' }));
 
-// ─── HIMOyalangan YO'LLAR (VAZIFALAR, ODATLAR ...) ───
+// ─── VAZIFALAR (TASKS) ─────────────────────────
 
 router.get('/tasks/:userId', authenticateToken, async (req, res) => {
   try {
@@ -130,6 +125,8 @@ router.delete('/tasks/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── ODATLAR (HABITS) ─────────────────────────
+
 router.get('/habits/:userId', authenticateToken, async (req, res) => {
   try {
     if (req.user.id != req.params.userId) return res.status(403).json({ error: "Ruxsat yo'q" });
@@ -157,6 +154,8 @@ router.delete('/habits/:id', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── ODAT LOGLARI (HABIT LOGS) ──────────────────
+
 router.get('/habit-logs/:userId', authenticateToken, async (req, res) => {
   try {
     if (req.user.id != req.params.userId) return res.status(403).json({ error: "Ruxsat yo'q" });
@@ -181,6 +180,8 @@ router.post('/habit-logs/toggle', authenticateToken, async (req, res) => {
     }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+// ─── CHELLENJLARI (CHALLENGES) ──────────────────
 
 router.get('/challenges/:userId', authenticateToken, async (req, res) => {
   try {
