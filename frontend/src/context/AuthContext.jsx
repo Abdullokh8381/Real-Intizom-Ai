@@ -11,47 +11,23 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("intizom_user");
-      if (saved) setUser(JSON.parse(saved));
+      const savedUser = localStorage.getItem("intizom_user");
+      const savedToken = localStorage.getItem("intizom_token");
+      if (savedUser && savedToken) {
+        setUser(JSON.parse(savedUser));
+        setToken(savedToken);
+      }
     } catch (e) {
       localStorage.removeItem("intizom_user");
+      localStorage.removeItem("intizom_token");
     }
     setLoading(false);
   }, []);
-
-  function login(email, password) {
-    const users = JSON.parse(localStorage.getItem("intizom_users") || "[]");
-    const found = users.find((u) => u.email === email && u.password === password);
-    if (!found) return { success: false, error: "Email yoki parol xato" };
-    const data = { id: found.id, email: found.email, full_name: found.full_name };
-    localStorage.setItem("intizom_user", JSON.stringify(data));
-    setUser(data);
-    return { success: true };
-  }
-
-  function register(email, password, full_name) {
-    const users = JSON.parse(localStorage.getItem("intizom_users") || "[]");
-    if (users.find((u) => u.email === email)) {
-      return { success: false, error: "Bu email allaqachon mavjud" };
-    }
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password,
-      full_name,
-      created_at: new Date().toISOString(),
-    };
-    users.push(newUser);
-    localStorage.setItem("intizom_users", JSON.stringify(users));
-    const data = { id: newUser.id, email: newUser.email, full_name: newUser.full_name };
-    localStorage.setItem("intizom_user", JSON.stringify(data));
-    setUser(data);
-    return { success: true };
-  }
 
   async function googleLogin(credential) {
     try {
@@ -63,9 +39,12 @@ export function AuthProvider({ children }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      localStorage.setItem("intizom_user", JSON.stringify(data));
-      setUser(data);
-      toast.success("Google orqali kirdingiz!");
+      // Moliyachi loyihasidagidek tokenni va foydalanuvchini saqlaymiz
+      localStorage.setItem("intizom_user", JSON.stringify(data.user));
+      localStorage.setItem("intizom_token", data.token);
+      setUser(data.user);
+      setToken(data.token);
+      toast.success("Xush kelibsiz!");
     } catch (err) {
       console.error(err);
       toast.error("Xatolik: " + err.message);
@@ -74,7 +53,9 @@ export function AuthProvider({ children }) {
 
   function logout() {
     localStorage.removeItem("intizom_user");
+    localStorage.removeItem("intizom_token");
     setUser(null);
+    setToken(null);
   }
 
   function updateProfile(updates) {
@@ -84,7 +65,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, googleLogin }}>
+    <AuthContext.Provider value={{ user, token, loading, logout, updateProfile, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );

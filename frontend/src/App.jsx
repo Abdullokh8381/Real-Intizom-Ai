@@ -60,10 +60,10 @@ function PublicRoute({ children }) {
 }
 
 function AppContent() {
-  var { user } = useAuth();
+  var { user, token } = useAuth();
 
   return (
-    <DataProvider userId={user ? user.id : null}>
+    <DataProvider userId={user ? user.id : null} token={token}>
       <Toaster
         position="top-right"
         toastOptions={{

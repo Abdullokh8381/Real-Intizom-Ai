@@ -2,8 +2,6 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import { startOfWeek, format, addDays } from "date-fns";
 
 const DataContext = createContext(null);
-
-// RENDER BACKEND URL
 const API_BASE = "https://intizom-backend-ibcz.onrender.com/api";
 
 export function useData() {
@@ -12,189 +10,108 @@ export function useData() {
   return ctx;
 }
 
-export function DataProvider({ children, userId }) {
+export function DataProvider({ children, userId, token }) {
   const [tasks, setTasks] = useState([]);
   const [habits, setHabits] = useState([]);
   const [habitLogs, setHabitLogs] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Ma'lumotlarni serverdan yuklash
+  // Avtorizatsiya uchun headerlar
+  const getHeaders = useCallback(() => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  }), [token]);
+
   const loadData = useCallback(async () => {
-    if (!userId) return;
+    if (!userId || !token) return;
     setLoading(true);
     try {
       const [tRes, hRes, lRes, cRes] = await Promise.all([
-        fetch(`${API_BASE}/tasks/${userId}`).then(r => r.json()),
-        fetch(`${API_BASE}/habits/${userId}`).then(r => r.json()),
-        fetch(`${API_BASE}/habit-logs/${userId}`).then(r => r.json()),
-        fetch(`${API_BASE}/challenges/${userId}`).then(r => r.json())
+        fetch(`${API_BASE}/tasks/${userId}`, { headers: getHeaders() }).then(r => r.json()),
+        fetch(`${API_BASE}/habits/${userId}`, { headers: getHeaders() }).then(r => r.json()),
+        fetch(`${API_BASE}/habit-logs/${userId}`, { headers: getHeaders() }).then(r => r.json()),
+        fetch(`${API_BASE}/challenges/${userId}`, { headers: getHeaders() }).then(r => r.json())
       ]);
       
-      // Ma'lumotlarni camelCase formatiga o'tkazamiz
       setTasks(Array.isArray(tRes) ? tRes.map(t => ({ ...t, isCompleted: t.is_completed, dayOfWeek: t.day_of_week, weekStart: t.week_start })) : []);
       setHabits(Array.isArray(hRes) ? hRes.map(h => ({ ...h, goalDays: h.goal_days, isActive: h.is_active })) : []);
       setHabitLogs(Array.isArray(lRes) ? lRes.map(l => ({ ...l, habitId: l.habit_id, logDate: l.log_date, isDone: l.is_done })) : []);
-      setChallenges(Array.isArray(cRes) ? cRes.map(c => ({ ...c, durationDays: c.duration_days, quantityLabel: c.quantity_label, startDate: c.start_date, endDate: c.end_date })) : []);
+      setChallenges(Array.isArray(cRes) ? cRes : []);
     } catch (err) {
-      console.error("Ma'lumot yuklashda xato:", err);
+      console.error("Yuklashda xato:", err);
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, token, getHeaders]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // ─── TASKS ────────────────────────
-  function getWeekStart(date) {
-    return format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-  }
-
-  function getWeekTasks(weekStart) {
-    return tasks.filter((t) => t.weekStart === weekStart);
-  }
-
   async function addTask(title, dayOfWeek, weekStart) {
     try {
       const res = await fetch(`${API_BASE}/tasks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ user_id: userId, title, day_of_week: dayOfWeek, week_start: weekStart })
       });
       const newTask = await res.json();
-      
-      if (!res.ok || newTask.error) throw new Error(newTask.error);
-
-      setTasks(prev => [...prev, {
-        ...newTask,
-        isCompleted: newTask.is_completed || false,
-        dayOfWeek: newTask.day_of_week,
-        weekStart: newTask.week_start
-      }]);
-    } catch (err) { 
-      console.error("Task API Error:", err); 
-      // Fallback: update state anyway so UI works
-      setTasks(prev => [...prev, { id: Date.now(), title, dayOfWeek, weekStart, isCompleted: false }]);
-    }
+      setTasks(prev => [...prev, { ...newTask, isCompleted: newTask.is_completed, dayOfWeek: newTask.day_of_week, weekStart: newTask.week_start }]);
+    } catch (err) { console.error(err); }
   }
 
   async function toggleTask(taskId) {
-    // Optimistic UI update
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, is_completed: !t.isCompleted } : t));
     try {
-      await fetch(`${API_BASE}/tasks/${taskId}/toggle`, { method: 'PUT' });
-    } catch (err) { console.error("Toggle API Error:", err); }
+      await fetch(`${API_BASE}/tasks/${taskId}/toggle`, { method: 'PUT', headers: getHeaders() });
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted } : t));
+    } catch (err) { console.error(err); }
   }
 
   async function deleteTask(taskId) {
-    // Optimistic UI update
-    setTasks(prev => prev.filter(t => t.id !== taskId));
     try {
-      await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
-    } catch (err) { console.error("Delete API Error:", err); }
+      await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE', headers: getHeaders() });
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    } catch (err) { console.error(err); }
   }
 
-  // ─── HABITS ───────────────────────
+  // Habits
   async function addHabit(data) {
     try {
       const res = await fetch(`${API_BASE}/habits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, ...data })
+        headers: getHeaders(),
+        body: JSON.stringify({ user_id: userId, name: data.name, color: data.color, priority: data.priority, goal_days: data.goalDays })
       });
       const newHabit = await res.json();
-      if (!res.ok || newHabit.error) throw new Error(newHabit.error);
-      setHabits(prev => [...prev, newHabit]);
-    } catch (err) { 
-      console.error("Habit API Error:", err);
-      setHabits(prev => [...prev, { id: Date.now(), ...data, goalDays: data.goal_days || data.goalDays, isActive: true }]);
-    }
+      setHabits(prev => [...prev, { ...newHabit, goalDays: newHabit.goal_days, isActive: newHabit.is_active }]);
+    } catch (err) { console.error(err); }
   }
 
   async function deleteHabit(habitId) {
-    setHabits(prev => prev.filter(h => h.id !== habitId));
-    setHabitLogs(prev => prev.filter(l => l.habit_id !== habitId));
     try {
-      await fetch(`${API_BASE}/habits/${habitId}`, { method: 'DELETE' });
-    } catch (err) { console.error("Delete Habit Error:", err); }
+      await fetch(`${API_BASE}/habits/${habitId}`, { method: 'DELETE', headers: getHeaders() });
+      setHabits(prev => prev.filter(h => h.id !== habitId));
+    } catch (err) { console.error(err); }
   }
-
-  async function toggleHabitLog(habitId, date) {
-    const dateStr = format(date, "yyyy-MM-dd");
-    
-    // Optimistic UI update
-    setHabitLogs(prev => {
-      const exists = prev.find(l => l.habit_id === habitId && l.log_date === dateStr);
-      if (exists) {
-        return prev.map(l => l.id === exists.id ? { ...l, is_done: !l.is_done } : l);
-      } else {
-        return [...prev, { id: Date.now(), habit_id: habitId, log_date: dateStr, is_done: true }];
-      }
-    });
-
-    try {
-      await fetch(`${API_BASE}/habit-logs/toggle`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habit_id: habitId, log_date: dateStr })
-      });
-    } catch (err) { console.error("Toggle Habit Log Error:", err); }
-  }
-
-  function isHabitDone(habitId, date) {
-    const dateStr = format(date, "yyyy-MM-dd");
-    const log = habitLogs.find((l) => l.habit_id === habitId && l.log_date === dateStr);
-    return log ? log.is_done : false;
-  }
-
-  function getHabitWeekProgress(habitId, weekStart) {
-    const start = new Date(weekStart + "T00:00:00");
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      days.push(format(addDays(start, i), "yyyy-MM-dd"));
-    }
-    const done = habitLogs.filter((l) => l.habit_id === habitId && days.indexOf(l.log_date) >= 0 && l.is_done).length;
-    return { completed: done, total: 7, percentage: Math.round((done / 7) * 100) };
-  }
-
-  // ─── CHALLENGES ───────────────────
-  async function addChallenge(data) {
-    try {
-      const res = await fetch(`${API_BASE}/challenges`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, ...data, duration_days: data.durationDays, quantity_label: data.quantityLabel })
-      });
-      const newCh = await res.json();
-      if (!res.ok || newCh.error) throw new Error(newCh.error);
-      setChallenges(prev => [...prev, newCh]);
-    } catch (err) { 
-      console.error("Challenge API Error:", err);
-      setChallenges(prev => [...prev, { id: Date.now(), ...data, status: 'not_started' }]);
-    }
-  }
-
-  // Qolgan funksiyalar (startChallenge, getChallengeProgress va h.k.) ham aynan shu tartibda API orqali ishlaydi
 
   function getDayStats(weekStart, dayOfWeek) {
     const dayTasks = tasks.filter((t) => t.weekStart === weekStart && t.dayOfWeek === dayOfWeek);
-    const completed = dayTasks.filter((t) => t.isCompleted || t.is_completed).length;
+    const completed = dayTasks.filter((t) => t.isCompleted).length;
     const total = dayTasks.length;
     return {
-      completed: completed,
-      total: total,
+      completed, total,
       notCompleted: total - completed,
       percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
     };
   }
 
   const value = {
-    tasks, habits, habitLogs, challenges, loading,
-    getWeekTasks, addTask, toggleTask, deleteTask, getWeekStart,
-    addHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
-    addChallenge, getDayStats
+    tasks, habits, loading,
+    addTask, toggleTask, deleteTask, getDayStats,
+    addHabit, deleteHabit,
+    getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
+    getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
