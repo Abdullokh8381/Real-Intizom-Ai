@@ -64,14 +64,19 @@ export function DataProvider({ children, userId }) {
         body: JSON.stringify({ user_id: userId, title, day_of_week: dayOfWeek, week_start: weekStart })
       });
       const newTask = await res.json();
-      setTasks(prev => [...prev, newTask]);
+      setTasks(prev => [...prev, {
+        ...newTask,
+        isCompleted: newTask.is_completed || false,
+        dayOfWeek: newTask.day_of_week,
+        weekStart: newTask.week_start
+      }]);
     } catch (err) { console.error(err); }
   }
 
   async function toggleTask(taskId) {
     try {
       await fetch(`${API_BASE}/tasks/${taskId}/toggle`, { method: 'PUT' });
-      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, is_completed: !t.is_completed } : t));
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, is_completed: !t.isCompleted } : t));
     } catch (err) { console.error(err); }
   }
 
@@ -157,7 +162,7 @@ export function DataProvider({ children, userId }) {
 
   function getDayStats(weekStart, dayOfWeek) {
     const dayTasks = tasks.filter((t) => t.weekStart === weekStart && t.dayOfWeek === dayOfWeek);
-    const completed = dayTasks.filter((t) => t.is_completed).length;
+    const completed = dayTasks.filter((t) => t.isCompleted || t.is_completed).length;
     const total = dayTasks.length;
     return {
       completed: completed,
