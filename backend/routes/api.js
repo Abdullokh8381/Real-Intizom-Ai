@@ -22,7 +22,7 @@ router.post('/auth/google', async (req, res) => {
     
     if (user.rows.length === 0) {
       user = await db.query(
-        'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+        'INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING *',
         [name, email, 'google_auth_placeholder']
       );
     }
@@ -40,7 +40,7 @@ router.post('/auth/google', async (req, res) => {
       token: jwtToken,
       user: {
         id: userData.id,
-        name: userData.name,
+        full_name: userData.full_name,
         email: userData.email
       }
     });
