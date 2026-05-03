@@ -1,6 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client("690088711703-e647j0mbn8lv73ue6dr9cbur3n7ticlm.apps.googleusercontent.com");
+
+// ─── AUTH (GOOGLE LOGIN) ───────────────────────
+
+router.post('/auth/google', async (req, res) => {
+  try {
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: "690088711703-e647j0mbn8lv73ue6dr9cbur3n7ticlm.apps.googleusercontent.com",
+    });
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
+
+    // Foydalanuvchi bazada bormi?
+    let user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    if (user.rows.length === 0) {
+      // Yangi foydalanuvchi yaratish
+      user = await db.query(
+        'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+        [name, email, 'google_auth_placeholder']
+      );
+    }
+    
+    res.json(user.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Google identifikatsiya xatosi" });
+  }
+});
 
 // Tizim holatini tekshirish
 router.get('/status', (req, res) => res.json({ status: 'ok' }));
@@ -10,6 +43,7 @@ router.get('/status', (req, res) => res.json({ status: 'ok' }));
 router.get('/tasks/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
+    if (isNaN(userId)) return res.json([]); // ID raqam bo'lmasa bo'sh qaytaramiz
     const result = await db.query('SELECT * FROM tasks WHERE user_id = $1 ORDER BY id ASC', [userId]);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -45,6 +79,7 @@ router.delete('/tasks/:id', async (req, res) => {
 
 router.get('/habits/:userId', async (req, res) => {
   try {
+    if (isNaN(req.params.userId)) return res.json([]);
     const result = await db.query('SELECT * FROM habits WHERE user_id = $1 ORDER BY priority DESC', [req.params.userId]);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -72,6 +107,7 @@ router.delete('/habits/:id', async (req, res) => {
 
 router.get('/habit-logs/:userId', async (req, res) => {
   try {
+    if (isNaN(req.params.userId)) return res.json([]);
     const result = await db.query(
       'SELECT hl.* FROM habit_logs hl JOIN habits h ON hl.habit_id = h.id WHERE h.user_id = $1',
       [req.params.userId]
@@ -99,6 +135,7 @@ router.post('/habit-logs/toggle', async (req, res) => {
 
 router.get('/challenges/:userId', async (req, res) => {
   try {
+    if (isNaN(req.params.userId)) return res.json([]);
     const result = await db.query('SELECT * FROM challenges WHERE user_id = $1', [req.params.userId]);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }

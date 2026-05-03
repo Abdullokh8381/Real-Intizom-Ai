@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext(null);
 
@@ -52,13 +53,23 @@ export function AuthProvider({ children }) {
     return { success: true };
   }
 
-  function googleLogin(credential) {
-    // Kelajakda bu credential (token) backend-ga yuboriladi
-    // Hozircha foydalanuvchini vaqtinchalik tizimga kiritamiz
-    const data = { id: "google_" + Date.now(), email: "google-user@test.com", full_name: "Google User" };
-    localStorage.setItem("intizom_user", JSON.stringify(data));
-    setUser(data);
-    toast.success("Google orqali kirdingiz!");
+  async function googleLogin(credential) {
+    try {
+      const res = await fetch("https://intizom-backend-ibcz.onrender.com/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credential })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      localStorage.setItem("intizom_user", JSON.stringify(data));
+      setUser(data);
+      toast.success("Google orqali kirdingiz!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Xatolik: " + err.message);
+    }
   }
 
   function logout() {
