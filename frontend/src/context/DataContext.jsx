@@ -120,26 +120,35 @@ export function DataProvider({ children, userId, token }) {
   async function toggleHabitLog(habitId, date) {
     const logDate = format(date, "yyyy-MM-dd");
     try {
-      // Optimistic update
+      // Optimistic update: ID dan tashqari habitId va logDate orqali ham tekshiramiz
       setHabitLogs(prev => {
-        const existing = prev.find(l => l.habitId === habitId && l.logDate === logDate);
+        const existing = prev.find(l => String(l.habitId) === String(habitId) && l.logDate === logDate);
         if (existing) {
-          return prev.map(l => (l.id === existing.id ? { ...l, isDone: !l.isDone } : l));
+          return prev.map(l => (l === existing ? { ...l, isDone: !l.isDone } : l));
         }
         return [...prev, { habitId, logDate, isDone: true }];
       });
 
-      await fetch(`${API_BASE}/habit-logs/toggle`, {
+      const res = await fetch(`${API_BASE}/habit-logs/toggle`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ habit_id: habitId, log_date: logDate })
       });
-    } catch (err) { console.error(err); }
+      const updatedLog = await res.json();
+      
+      // Serverdan haqiqiy ID ni olib, holatni yangilaymiz
+      setHabitLogs(prev => prev.map(l => 
+        (String(l.habitId) === String(habitId) && l.logDate === logDate) ? { ...updatedLog, habitId: updatedLog.habit_id, logDate: updatedLog.log_date, isDone: updatedLog.is_done } : l
+      ));
+    } catch (err) { 
+      console.error(err);
+      loadData(); // Xato bo'lsa ma'lumotlarni qayta yuklaymiz
+    }
   }
 
   function isHabitDone(habitId, date) {
     const logDate = format(date, "yyyy-MM-dd");
-    const log = habitLogs.find(l => l.habitId === habitId && l.logDate === logDate);
+    const log = habitLogs.find(l => String(l.habitId) === String(habitId) && l.logDate === logDate);
     return log ? log.isDone : false;
   }
 
