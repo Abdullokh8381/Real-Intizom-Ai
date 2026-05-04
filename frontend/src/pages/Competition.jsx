@@ -226,14 +226,14 @@ export default function Competition() {
                         </div>
                         <div className="text-center">
                           <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide">{myName}</p>
-                          <div className="mt-3 space-y-2">
-                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4 overflow-hidden min-w-[100px] shadow-inner">
+                          <div className="mt-3 space-y-1">
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden min-w-[80px]">
                               <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-600" : "bg-gradient-to-r from-primary-400 to-primary-600"} shadow-lg`}
+                                className={`h-full rounded-full transition-all duration-1000 ${iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500" : "bg-gradient-to-r from-primary-400 to-primary-600"}`}
                                 style={{ width: `${myProgress}%` }}
                               />
                             </div>
-                            <p className={`text-2xl font-black ${iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{myProgress}%</p>
+                            <p className={`text-xl font-black ${iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{myProgress}%</p>
                           </div>
                         </div>
                       </div>
@@ -250,14 +250,14 @@ export default function Competition() {
                         </div>
                         <div className="text-center">
                           <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate max-w-[100px]">{theirName}</p>
-                          <div className="mt-3 space-y-2">
-                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4 overflow-hidden min-w-[100px] shadow-inner">
+                          <div className="mt-3 space-y-1">
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden min-w-[80px]">
                               <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${!iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-600" : "bg-gradient-to-r from-primary-400 to-primary-600"} shadow-lg`}
+                                className={`h-full rounded-full transition-all duration-1000 ${!iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500" : "bg-gradient-to-r from-primary-400 to-primary-600"}`}
                                 style={{ width: `${theirProgress}%` }}
                               />
                             </div>
-                            <p className={`text-2xl font-black ${!iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{theirProgress}%</p>
+                            <p className={`text-xl font-black ${!iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{theirProgress}%</p>
                           </div>
                         </div>
                       </div>
