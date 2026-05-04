@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useData } from "../context/DataContext";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
@@ -8,6 +8,14 @@ export default function Competition() {
   const { user } = useAuth();
   const data = useData();
   const [showModal, setShowModal] = useState(false);
+
+  // Do'stlar natijasini avtomatik yangilab turish (Polling)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      data.loadData();
+    }, 10000); // Har 10 soniyada yangilaydi
+    return () => clearInterval(interval);
+  }, [data]);
   
   // Modal states
   const [title, setTitle] = useState("");
