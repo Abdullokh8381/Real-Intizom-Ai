@@ -16,6 +16,7 @@ import {
   Moon,
   Leaf,
 } from "lucide-react";
+import Logo from "./Logo";
 
 var NAV_ITEMS = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Panel" },
@@ -40,12 +41,7 @@ export default function Layout() {
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-30 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Leaf className="text-primary-600" size={24} />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent">
-              Intizom AI
-            </span>
-          </div>
+          <Logo iconSize={32} textClass="text-xl" />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-700 dark:text-gray-200"
@@ -64,11 +60,8 @@ export default function Layout() {
       >
         {/* Logo */}
         <div className="p-5 border-b border-gray-200 dark:border-gray-800 mt-14 lg:mt-0">
-          <div className="hidden lg:flex items-center gap-2 mb-4">
-            <Leaf className="text-primary-600" size={28} />
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent">
-              Intizom AI
-            </span>
+          <div className="hidden lg:flex items-center mb-6">
+            <Logo iconSize={36} textClass="text-2xl" />
           </div>
           <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
             {user ? user.full_name : "Foydalanuvchi"}

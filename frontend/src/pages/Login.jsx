@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { LogIn, Leaf, Eye, EyeOff } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
+import Logo from "../components/Logo";
 
 export default function Login() {
   var { login, googleLogin } = useAuth();
@@ -30,13 +31,8 @@ export default function Login() {
       <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-300/20 rounded-full blur-3xl" />
 
       <div className="max-w-md w-full relative z-10">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-emerald-500 rounded-2xl mb-4 shadow-lg">
-            <Leaf className="text-white" size={32} />
-          </div>
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-primary-600 to-emerald-500 bg-clip-text text-transparent mb-2">
-            Intizom AI
-          </h1>
+        <div className="flex flex-col items-center justify-center mb-8">
+          <Logo iconSize={48} textClass="text-4xl" className="mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Odatlar va vazifalarni boshqaring</p>
         </div>
 
