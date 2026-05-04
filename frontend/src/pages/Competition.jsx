@@ -237,9 +237,9 @@ export default function Competition() {
                         <div className="text-center">
                           <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide">{myName}</p>
                           <div className="mt-3 space-y-1">
-                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4 overflow-hidden min-w-[120px] shadow-inner">
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1 overflow-hidden min-w-[120px] sm:min-w-[150px]">
                               <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.5)]" : "bg-gradient-to-r from-primary-400 to-primary-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]"}`}
+                                className={`h-full rounded-full transition-all duration-1000 ${iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500" : "bg-gradient-to-r from-primary-400 to-primary-600"}`}
                                 style={{ width: `${myProgress}%` }}
                               />
                             </div>
@@ -261,9 +261,9 @@ export default function Competition() {
                         <div className="text-center">
                           <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate max-w-[100px]">{theirName}</p>
                           <div className="mt-3 space-y-1">
-                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-4 overflow-hidden min-w-[120px] shadow-inner">
+                            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1 overflow-hidden min-w-[120px] sm:min-w-[150px]">
                               <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${!iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_10px_rgba(251,191,36,0.5)]" : "bg-gradient-to-r from-primary-400 to-primary-600 shadow-[0_0_10px_rgba(37,99,235,0.3)]"}`}
+                                className={`h-full rounded-full transition-all duration-1000 ${!iAmLeader ? "bg-gradient-to-r from-amber-400 to-amber-500" : "bg-gradient-to-r from-primary-400 to-primary-600"}`}
                                 style={{ width: `${theirProgress}%` }}
                               />
                             </div>
