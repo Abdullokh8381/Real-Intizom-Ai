@@ -130,7 +130,8 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              <button type="submit" className="w-full btn bg-gray-900 dark:bg-white dark:text-gray-900 text-white h-12 font-bold hover:scale-[1.02] active:scale-95 transition-all">
+              <button type="submit" className="w-full btn bg-gradient-to-r from-gray-900 to-gray-800 dark:from-white dark:to-gray-100 dark:text-gray-900 text-white h-12 font-bold hover:shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 border border-gray-700 dark:border-gray-200">
+                <Lock size={16} />
                 Parolni yangilash
               </button>
             </form>
@@ -178,22 +179,34 @@ export default function Profile() {
           </div>
 
           {/* Quick Stats Placeholder */}
-          <div className="card bg-gradient-to-br from-gray-900 to-black text-white border-none shadow-xl relative overflow-hidden">
-            <div className="absolute -right-4 -bottom-4 opacity-10">
-              <Trophy size={100} />
+          <div className="card bg-gradient-to-br from-gray-900 to-black text-white border-none shadow-2xl relative overflow-hidden p-6 group">
+            <div className="absolute -right-6 -bottom-6 opacity-[0.07] group-hover:opacity-10 transition-opacity duration-500">
+              <Trophy size={140} />
             </div>
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Profil holati</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-[10px] font-bold mb-1">
-                  <span>PROFIL TO'LDIRILISHI</span>
-                  <span className="text-primary-400">85%</span>
+            
+            <div className="relative z-10 space-y-5">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-4 bg-primary-500 rounded-full" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Profil holati</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-gray-100">To'ldirilishi</span>
+                    <span className="text-xl font-black text-primary-400 italic">85%</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2 shadow-inner overflow-hidden">
+                    <div className="bg-gradient-to-r from-primary-600 to-primary-400 h-full rounded-full shadow-[0_0_15px_rgba(34,197,94,0.4)]" style={{ width: '85%' }} />
+                  </div>
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-1.5">
-                  <div className="bg-primary-500 h-full rounded-full" style={{ width: '85%' }} />
+                
+                <div className="pt-2 border-t border-white/5">
+                  <p className="text-[11px] leading-relaxed text-gray-400 italic font-medium">
+                    "Intizom — bu xohlagan narsangiz va eng ko'p xohlagan narsangiz o'rtasidagi tanlovdir."
+                  </p>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400 italic">"Intizom — bu xohlagan narsangiz va eng ko'p xohlagan narsangiz o'rtasidagi tanlovdir."</p>
             </div>
           </div>
         </div>
