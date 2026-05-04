@@ -234,8 +234,8 @@ export default function Competition() {
                             👤
                           </div>
                         </div>
-                        <div className="text-center w-full">
-                          <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate px-2">{myName}</p>
+                        <div className="w-full">
+                          <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate px-2 text-center w-full">{myName}</p>
                           <div className="mt-3 space-y-1 flex flex-col items-center">
                             <div className="w-48 sm:w-64 bg-gray-100 dark:bg-gray-800 rounded-full h-1 overflow-hidden">
                               <div 
@@ -258,8 +258,8 @@ export default function Competition() {
                             🧑
                           </div>
                         </div>
-                        <div className="text-center w-full">
-                          <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate px-2">{theirName}</p>
+                        <div className="w-full">
+                          <p className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wide truncate px-2 text-center w-full">{theirName}</p>
                           <div className="mt-3 space-y-1 flex flex-col items-center">
                             <div className="w-48 sm:w-64 bg-gray-100 dark:bg-gray-800 rounded-full h-1 overflow-hidden">
                               <div 
