@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useData } from "../context/DataContext";
 import { differenceInDays } from "date-fns";
 import { Trophy, Plus, Play, X, Check, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 var PRESETS = [
   { name: "30 kun shakarsiz", desc: "Bir oy shakar yoq", days: 30, qty: "0 gr shakar", emoji: "\uD83C\uDF6C" },
@@ -28,12 +29,27 @@ export default function Challenges() {
     setShowModal(true);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!formName.trim()) return;
-    data.addChallenge({ name: formName.trim(), description: formDesc, durationDays: Number(formDays), quantityLabel: formQty });
-    setShowModal(false);
-    setFormName(""); setFormDesc(""); setFormDays(30); setFormQty("");
+    if (!formName.trim()) {
+      toast.error("Nomi bo'sh bo'lmasligi kerak");
+      return;
+    }
+    
+    try {
+      await data.addChallenge({ 
+        name: formName.trim(), 
+        description: formDesc, 
+        durationDays: Number(formDays), 
+        quantityLabel: formQty 
+      });
+      toast.success("Chellenj muvaffaqiyatli qo'shildi!");
+      setShowModal(false);
+      setFormName(""); setFormDesc(""); setFormDays(30); setFormQty("");
+    } catch (err) {
+      toast.error("Xatolik yuz berdi");
+      console.error(err);
+    }
   }
 
   function statusBadge(status) {
