@@ -233,7 +233,15 @@ export function DataProvider({ children, userId, token }) {
       });
       const newCh = await res.json();
       if (newCh.id) {
-        setChallenges(prev => [...prev, { ...newCh, durationDays: newCh.duration_days, quantityLabel: newCh.quantity_label, startDate: newCh.start_date, endDate: newCh.end_date }]);
+        setChallenges(prev => [...prev, { 
+          ...newCh, 
+          durationDays: newCh.duration_days, 
+          quantityLabel: newCh.quantity_label, 
+          startDate: newCh.start_date, 
+          endDate: newCh.end_date,
+          habitId: newCh.habit_id 
+        }]);
+        loadData(); // reload to get new habit
       }
     } catch (err) { console.error(err); }
   }
@@ -245,7 +253,15 @@ export function DataProvider({ children, userId, token }) {
         headers: getHeaders()
       });
       const updated = await res.json();
-      setChallenges(prev => prev.map(c => c.id === chId ? { ...updated, durationDays: updated.duration_days, quantityLabel: updated.quantity_label, startDate: updated.start_date, endDate: updated.end_date } : c));
+      setChallenges(prev => prev.map(c => c.id === chId ? { 
+        ...updated, 
+        durationDays: updated.duration_days, 
+        quantityLabel: updated.quantity_label, 
+        startDate: updated.start_date, 
+        endDate: updated.end_date,
+        habitId: updated.habit_id 
+      } : c));
+      loadData(); // reload to get new habit
     } catch (err) { console.error(err); }
   }
 
@@ -258,10 +274,22 @@ export function DataProvider({ children, userId, token }) {
 
   function getChallengeProgress(chId) {
     const ch = challenges.find(c => c.id === chId);
-    if (!ch || ch.status !== 'active') return { completed: 0, total: ch?.durationDays || 30, percentage: 0 };
-    // Hozircha chellenjlar uchun progress loglari alohida emas, shuning uchun 0 qaytaramiz 
-    // yoki kelgusida habit_id bog'langanda shunga qarab hisoblaymiz
-    return { completed: 0, total: ch.durationDays, percentage: 0 };
+    if (!ch) return { completed: 0, total: 30, percentage: 0 };
+    
+    const hId = ch.habitId || ch.habit_id;
+    const duration = ch.durationDays || ch.duration_days || 30;
+    
+    if (!hId || ch.status !== 'active') return { completed: 0, total: duration, percentage: 0 };
+
+    // Calculate completed days from habit logs
+    const logs = habitLogs.filter(l => String(l.habitId) === String(hId) && l.isDone);
+    const completed = logs.length;
+    
+    return { 
+      completed, 
+      total: duration, 
+      percentage: Math.min(100, Math.round((completed / duration) * 100)) 
+    };
   }
 
   function getDayStats(weekStart, dayOfWeek) {

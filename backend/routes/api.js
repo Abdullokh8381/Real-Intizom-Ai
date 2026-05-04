@@ -207,10 +207,22 @@ router.post('/challenges', authenticateToken, async (req, res) => {
     const { user_id, name, description, duration_days, quantity_label, start_date, end_date } = req.body;
     if (req.user.id != user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
     
-    const status = start_date ? 'active' : 'not_started';
+    let habit_id = null;
+    let status = 'not_started';
+
+    if (start_date) {
+      status = 'active';
+      // Create habit
+      const hRes = await db.query(
+        "INSERT INTO habits (user_id, name, color, priority, goal_days) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [user_id, `Chellenj: ${name}`, "#10b981", 5, 30] // green color
+      );
+      habit_id = hRes.rows[0].id;
+    }
+
     const result = await db.query(
-      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label, status, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [user_id, name, description, duration_days, quantity_label, status, start_date, end_date]
+      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label, status, start_date, end_date, habit_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [user_id, name, description, duration_days, quantity_label, status, start_date, end_date, habit_id]
     );
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -222,7 +234,6 @@ router.put('/challenges/:id/start', authenticateToken, async (req, res) => {
     const startDate = new Date();
     const startDateStr = startDate.toISOString().split('T')[0];
     
-    // Get challenge to calculate end_date
     const cRes = await db.query('SELECT * FROM challenges WHERE id = $1', [challengeId]);
     if (cRes.rows.length === 0) return res.status(404).json({ error: "Topilmadi" });
     const ch = cRes.rows[0];
@@ -232,9 +243,16 @@ router.put('/challenges/:id/start', authenticateToken, async (req, res) => {
     endDate.setDate(endDate.getDate() + ch.duration_days - 1);
     const endDateStr = endDate.toISOString().split('T')[0];
 
+    // Create habit
+    const hRes = await db.query(
+      "INSERT INTO habits (user_id, name, color, priority, goal_days) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [ch.user_id, `Chellenj: ${ch.name}`, "#10b981", 5, 30]
+    );
+    const habit_id = hRes.rows[0].id;
+
     const result = await db.query(
-      "UPDATE challenges SET status = 'active', start_date = $1, end_date = $2 WHERE id = $3 RETURNING *",
-      [startDateStr, endDateStr, challengeId]
+      "UPDATE challenges SET status = 'active', start_date = $1, end_date = $2, habit_id = $3 WHERE id = $4 RETURNING *",
+      [startDateStr, endDateStr, habit_id, challengeId]
     );
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }
