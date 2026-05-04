@@ -124,8 +124,8 @@ export default function Competition() {
             const myName = "Siz";
             const theirName = isSender ? comp.receiver_name : comp.sender_name;
             
-            const myProgress = getCompProgress(comp.id, myHabitId);
-            const theirProgress = getCompProgress(comp.id, theirHabitId);
+            const myProgress = isSender ? comp.sender_progress : comp.receiver_progress;
+            const theirProgress = isSender ? comp.receiver_progress : comp.sender_progress;
             
             const iAmLeader = myProgress >= theirProgress;
 
