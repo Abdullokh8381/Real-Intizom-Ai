@@ -207,10 +207,46 @@ router.post('/challenges', authenticateToken, async (req, res) => {
     const { user_id, name, description, duration_days, quantity_label } = req.body;
     if (req.user.id != user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
     const result = await db.query(
-      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [user_id, name, description, duration_days, quantity_label]
+      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [user_id, name, description, duration_days, quantity_label, 'not_started']
     );
     res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/challenges/:id/start', authenticateToken, async (req, res) => {
+  try {
+    const challengeId = req.params.id;
+    const startDate = new Date();
+    const startDateStr = startDate.toISOString().split('T')[0];
+    
+    // Get challenge to calculate end_date
+    const cRes = await db.query('SELECT * FROM challenges WHERE id = $1', [challengeId]);
+    if (cRes.rows.length === 0) return res.status(404).json({ error: "Topilmadi" });
+    const ch = cRes.rows[0];
+    if (req.user.id != ch.user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + ch.duration_days - 1);
+    const endDateStr = endDate.toISOString().split('T')[0];
+
+    const result = await db.query(
+      "UPDATE challenges SET status = 'active', start_date = $1, end_date = $2 WHERE id = $3 RETURNING *",
+      [startDateStr, endDateStr, challengeId]
+    );
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/challenges/:id', authenticateToken, async (req, res) => {
+  try {
+    const challengeId = req.params.id;
+    const chRes = await db.query('SELECT user_id FROM challenges WHERE id = $1', [challengeId]);
+    if (chRes.rows.length === 0) return res.status(404).json({ error: "Topilmadi" });
+    if (req.user.id != chRes.rows[0].user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+
+    await db.query('DELETE FROM challenges WHERE id = $1', [challengeId]);
+    res.json({ success: true });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

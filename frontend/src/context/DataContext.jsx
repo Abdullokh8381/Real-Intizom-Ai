@@ -215,6 +215,44 @@ export function DataProvider({ children, userId, token }) {
     } catch (err) {
       return { success: false, error: err.message };
     }
+  async function addChallenge(data) {
+    try {
+      const res = await fetch(`${API_BASE}/challenges`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ user_id: userId, name: data.name, description: data.description, duration_days: data.durationDays, quantity_label: data.quantityLabel })
+      });
+      const newCh = await res.json();
+      if (newCh.id) {
+        setChallenges(prev => [...prev, { ...newCh, durationDays: newCh.duration_days, quantityLabel: newCh.quantity_label, startDate: newCh.start_date, endDate: newCh.end_date }]);
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  async function startChallenge(chId) {
+    try {
+      const res = await fetch(`${API_BASE}/challenges/${chId}/start`, {
+        method: 'PUT',
+        headers: getHeaders()
+      });
+      const updated = await res.json();
+      setChallenges(prev => prev.map(c => c.id === chId ? { ...updated, durationDays: updated.duration_days, quantityLabel: updated.quantity_label, startDate: updated.start_date, endDate: updated.end_date } : c));
+    } catch (err) { console.error(err); }
+  }
+
+  async function deleteChallenge(chId) {
+    try {
+      setChallenges(prev => prev.filter(c => c.id !== chId));
+      await fetch(`${API_BASE}/challenges/${chId}`, { method: 'DELETE', headers: getHeaders() });
+    } catch (err) { console.error(err); }
+  }
+
+  function getChallengeProgress(chId) {
+    const ch = challenges.find(c => c.id === chId);
+    if (!ch || ch.status !== 'active') return { completed: 0, total: ch?.durationDays || 30, percentage: 0 };
+    // Hozircha chellenjlar uchun progress loglari alohida emas, shuning uchun 0 qaytaramiz 
+    // yoki kelgusida habit_id bog'langanda shunga qarab hisoblaymiz
+    return { completed: 0, total: ch.durationDays, percentage: 0 };
   }
 
   function getDayStats(weekStart, dayOfWeek) {
@@ -231,6 +269,7 @@ export function DataProvider({ children, userId, token }) {
     tasks, habits, habitLogs, challenges, competitions, loading,
     addTask, toggleTask, deleteTask, getDayStats,
     addHabit, updateHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
+    addChallenge, startChallenge, deleteChallenge, getChallengeProgress,
     searchUserByEmail, sendCompetitionInvite, respondToCompetition,
     loadData,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
