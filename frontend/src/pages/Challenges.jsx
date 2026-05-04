@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useData } from "../context/DataContext";
 import { differenceInDays } from "date-fns";
-import { Trophy, Plus, Play, X, Check, ChevronRight } from "lucide-react";
+import { Trophy, Plus, Play, X, Check, ChevronRight, Calendar, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 
 var PRESETS = [
