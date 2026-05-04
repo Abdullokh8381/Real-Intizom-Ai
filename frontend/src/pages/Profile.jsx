@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { User, Mail, Lock, Save, Sun, Moon, Globe } from "lucide-react";
+import { User, Mail, Lock, Save, Sun, Moon, Globe, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function Profile() {
