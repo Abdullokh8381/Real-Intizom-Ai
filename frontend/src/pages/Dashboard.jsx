@@ -301,13 +301,21 @@ export default function Dashboard() {
             </div>
             
             <div className="p-5 space-y-6">
-              {activeHabits.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-sm font-medium text-gray-400">Odatlar qo'shilmagan</p>
-                  <button onClick={function() { navigate('/habits') }} className="mt-3 text-xs text-primary-600 font-bold hover:underline">YANGI QO'SHISH</button>
-                </div>
-              ) : (
-                activeHabits.map(function (habit) {
+              {(function() {
+                var regularHabits = activeHabits.filter(function(h) {
+                  return !data.challenges.some(function(c) { return String(c.habitId || c.habit_id) === String(h.id); });
+                });
+
+                if (regularHabits.length === 0) {
+                  return (
+                    <div className="text-center py-10">
+                      <p className="text-sm font-medium text-gray-400">Odatlar qo'shilmagan</p>
+                      <button onClick={function() { navigate('/habits') }} className="mt-3 text-xs text-primary-600 font-bold hover:underline">YANGI QO'SHISH</button>
+                    </div>
+                  );
+                }
+
+                return regularHabits.map(function (habit) {
                   var progress = data.getHabitWeekProgress(habit.id, currentWeek);
                   return (
                     <div key={habit.id} className="space-y-3 pb-4 border-b border-gray-50 dark:border-gray-800 last:border-0 last:pb-0">
@@ -350,8 +358,8 @@ export default function Dashboard() {
                       </div>
                     </div>
                   );
-                })
-              )}
+                });
+              })()}
             </div>
           </div>
         </div>
