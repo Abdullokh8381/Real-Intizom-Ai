@@ -335,10 +335,8 @@ export default function Dashboard() {
                   var isLinkedToChallenge = data.challenges.some(function(c) { 
                     return String(c.habitId || c.habit_id) === String(h.id); 
                   });
-                  var isChallengeName = h.name.startsWith("Chellenj: ");
-                  var isCompetitionName = h.name.startsWith("Musobaqa: ");
-                  
-                  return !isLinkedToChallenge && !isChallengeName && !isCompetitionName;
+                  var hasChallengeName = h.name.startsWith("Chellenj: ");
+                  return !isLinkedToChallenge && !hasChallengeName;
                 });
 
                 if (regularHabits.length === 0) {
