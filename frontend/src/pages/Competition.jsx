@@ -202,9 +202,15 @@ export default function Competition() {
                       </div>
                       <h3 className="font-bold text-gray-900 dark:text-gray-100">{comp.title}</h3>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-wider">
-                      <Clock size={12} />
-                      {comp.end_date}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        <Calendar size={12} />
+                        {comp.start_date}
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        <Clock size={12} />
+                        {comp.end_date}
+                      </div>
                     </div>
                   </div>
 
