@@ -214,4 +214,93 @@ router.post('/challenges', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── USERS (SEARCH) ─────────────────────────────
+
+router.get('/users/search', authenticateToken, async (req, res) => {
+  try {
+    const { email } = req.query;
+    const result = await db.query('SELECT id, name, email FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Foydalanuvchi topilmadi" });
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── MUSOBAQALAR (COMPETITIONS) ─────────────────
+
+router.get('/competitions/:userId', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.id != req.params.userId) return res.status(403).json({ error: "Ruxsat yo'q" });
+    const result = await db.query(`
+      SELECT c.*, 
+             u1.name as sender_name, u1.email as sender_email,
+             u2.name as receiver_name, u2.email as receiver_email
+      FROM competitions c
+      JOIN users u1 ON c.sender_id = u1.id
+      JOIN users u2 ON c.receiver_id = u2.id
+      WHERE c.sender_id = $1 OR c.receiver_id = $1
+      ORDER BY c.created_at DESC
+    `, [req.params.userId]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/competitions', authenticateToken, async (req, res) => {
+  try {
+    const { sender_id, receiver_email, title, start_date, end_date, note } = req.body;
+    if (req.user.id != sender_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+    
+    // Find receiver
+    const receiverResult = await db.query('SELECT id FROM users WHERE email = $1', [receiver_email]);
+    if (receiverResult.rows.length === 0) return res.status(404).json({ error: "Foydalanuvchi topilmadi" });
+    const receiver_id = receiverResult.rows[0].id;
+
+    if (sender_id === receiver_id) return res.status(400).json({ error: "O'zingiz bilan musobaqalasha olmaysiz" });
+
+    // Check if pending exists
+    const existing = await db.query('SELECT * FROM competitions WHERE sender_id = $1 AND receiver_id = $2 AND status = $3', [sender_id, receiver_id, 'pending']);
+    if (existing.rows.length > 0) return res.status(400).json({ error: "Siz allaqachon taklif yuborgansiz" });
+
+    const result = await db.query(
+      'INSERT INTO competitions (sender_id, receiver_id, title, start_date, end_date, note) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [sender_id, receiver_id, title, start_date, end_date, note]
+    );
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/competitions/:id/status', authenticateToken, async (req, res) => {
+  try {
+    const { status } = req.body; // 'active' or 'rejected'
+    const compId = req.params.id;
+    
+    const compResult = await db.query('SELECT * FROM competitions WHERE id = $1', [compId]);
+    if (compResult.rows.length === 0) return res.status(404).json({ error: "Musobaqa topilmadi" });
+    const comp = compResult.rows[0];
+
+    if (req.user.id != comp.receiver_id) return res.status(403).json({ error: "Faqat qabul qiluvchi tasdiqlashi mumkin" });
+
+    if (status === 'active') {
+      // Create habit for sender
+      const h1 = await db.query(
+        "INSERT INTO habits (user_id, name, color, priority, goal_days) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [comp.sender_id, `Musobaqa: ${comp.title}`, "#f59e0b", 10, 30] // example color amber
+      );
+      // Create habit for receiver
+      const h2 = await db.query(
+        "INSERT INTO habits (user_id, name, color, priority, goal_days) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [comp.receiver_id, `Musobaqa: ${comp.title}`, "#f59e0b", 10, 30]
+      );
+
+      const updateResult = await db.query(
+        "UPDATE competitions SET status = 'active', sender_habit_id = $1, receiver_habit_id = $2 WHERE id = $3 RETURNING *",
+        [h1.rows[0].id, h2.rows[0].id, compId]
+      );
+      res.json(updateResult.rows[0]);
+    } else {
+      const updateResult = await db.query("UPDATE competitions SET status = $1 WHERE id = $2 RETURNING *", [status, compId]);
+      res.json(updateResult.rows[0]);
+    }
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;

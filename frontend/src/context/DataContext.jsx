@@ -15,6 +15,7 @@ export function DataProvider({ children, userId, token }) {
   const [habits, setHabits] = useState([]);
   const [habitLogs, setHabitLogs] = useState([]);
   const [challenges, setChallenges] = useState([]);
+  const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const getHeaders = useCallback(() => ({
@@ -31,17 +32,19 @@ export function DataProvider({ children, userId, token }) {
     try {
       const fetchJson = (url) => fetch(url, { headers: getHeaders() }).then(r => r.ok ? r.json() : []);
 
-      const [tRes, hRes, lRes, cRes] = await Promise.all([
+      const [tRes, hRes, lRes, cRes, compRes] = await Promise.all([
         fetchJson(`${API_BASE}/tasks/${userId}`),
         fetchJson(`${API_BASE}/habits/${userId}`),
         fetchJson(`${API_BASE}/habit-logs/${userId}`),
-        fetchJson(`${API_BASE}/challenges/${userId}`)
+        fetchJson(`${API_BASE}/challenges/${userId}`),
+        fetchJson(`${API_BASE}/competitions/${userId}`)
       ]);
       
       setTasks(Array.isArray(tRes) ? tRes.map(t => ({ ...t, isCompleted: t.is_completed, dayOfWeek: t.day_of_week, weekStart: t.week_start })) : []);
       setHabits(Array.isArray(hRes) ? hRes.map(h => ({ ...h, goalDays: h.goal_days, isActive: h.is_active })) : []);
       setHabitLogs(Array.isArray(lRes) ? lRes.map(l => ({ ...l, habitId: l.habit_id, logDate: l.log_date, isDone: l.is_done })) : []);
       setChallenges(Array.isArray(cRes) ? cRes : []);
+      setCompetitions(Array.isArray(compRes) ? compRes : []);
     } catch (err) {
       console.error("Yuklashda xato:", err);
     } finally {
@@ -163,6 +166,53 @@ export function DataProvider({ children, userId, token }) {
     return { count: doneCount, percentage: Math.round((doneCount / 7) * 100) };
   }
 
+  async function searchUserByEmail(email) {
+    try {
+      const res = await fetch(`${API_BASE}/users/search?email=${encodeURIComponent(email)}`, { headers: getHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async function sendCompetitionInvite(receiverEmail, title, startDate, endDate, note) {
+    try {
+      const res = await fetch(`${API_BASE}/competitions`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ sender_id: userId, receiver_email: receiverEmail, title, start_date: startDate, end_date: endDate, note })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      // Backend returns sender_name etc by joining users table. We need to reload to get those properly formatted, or just do loadData()
+      loadData();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  async function respondToCompetition(compId, status) {
+    try {
+      const res = await fetch(`${API_BASE}/competitions/${compId}/status`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setCompetitions(prev => prev.map(c => c.id === compId ? { ...c, status } : c));
+      if (status === 'active') {
+        loadData(); // reload to get new habits
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
   function getDayStats(weekStart, dayOfWeek) {
     const dayTasks = tasks.filter((t) => t.weekStart === weekStart && t.dayOfWeek === dayOfWeek);
     const total = dayTasks.length;
@@ -174,9 +224,10 @@ export function DataProvider({ children, userId, token }) {
   }
 
   const value = {
-    tasks, habits, habitLogs, challenges, loading,
+    tasks, habits, habitLogs, challenges, competitions, loading,
     addTask, toggleTask, deleteTask, getDayStats,
     addHabit, updateHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
+    searchUserByEmail, sendCompetitionInvite, respondToCompetition,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
   };
