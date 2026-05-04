@@ -274,7 +274,7 @@ export function DataProvider({ children, userId, token }) {
     loadData,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
-  }), [tasks, habits, habitLogs, challenges, competitions, loading, addTask, toggleTask, deleteTask, addHabit, updateHabit, deleteHabit, toggleHabitLog, searchUserByEmail, sendCompetitionInvite, respondToCompetition, loadData]);
+  }), [tasks, habits, habitLogs, challenges, competitions, loading, addTask, toggleTask, deleteTask, addHabit, updateHabit, deleteHabit, toggleHabitLog, addChallenge, startChallenge, deleteChallenge, searchUserByEmail, sendCompetitionInvite, respondToCompetition, loadData]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
