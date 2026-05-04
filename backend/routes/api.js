@@ -236,8 +236,8 @@ router.get('/competitions/:userId', authenticateToken, async (req, res) => {
       SELECT c.*, 
              u1.name as sender_name, u1.email as sender_email,
              u2.name as receiver_name, u2.email as receiver_email,
-             (SELECT count(*) FROM habit_logs WHERE habit_id = c.sender_habit_id AND is_done = true AND log_date >= to_char(date_trunc('week', current_date), 'YYYY-MM-DD')) as sender_done_count,
-             (SELECT count(*) FROM habit_logs WHERE habit_id = c.receiver_habit_id AND is_done = true AND log_date >= to_char(date_trunc('week', current_date), 'YYYY-MM-DD')) as receiver_done_count
+             (SELECT count(*) FROM habit_logs WHERE habit_id = c.sender_habit_id AND is_done = true AND log_date >= c.start_date AND log_date <= c.end_date) as sender_done_count,
+             (SELECT count(*) FROM habit_logs WHERE habit_id = c.receiver_habit_id AND is_done = true AND log_date >= c.start_date AND log_date <= c.end_date) as receiver_done_count
       FROM competitions c
       JOIN users u1 ON c.sender_id = u1.id
       JOIN users u2 ON c.receiver_id = u2.id
@@ -245,12 +245,19 @@ router.get('/competitions/:userId', authenticateToken, async (req, res) => {
       ORDER BY c.created_at DESC
     `, [req.params.userId]);
     
-    // Foizlarni hisoblab qaytaramiz (haftalik 7 kun deb olsak)
-    const competitions = result.rows.map(row => ({
-      ...row,
-      sender_progress: Math.min(100, Math.round((parseInt(row.sender_done_count || 0) / 7) * 100)),
-      receiver_progress: Math.min(100, Math.round((parseInt(row.receiver_done_count || 0) / 7) * 100))
-    }));
+    // Musobaqa davomiyligini va bajarilgan kunlarni hisoblash
+    const competitions = result.rows.map(row => {
+      const start = new Date(row.start_date);
+      const end = new Date(row.end_date);
+      const totalDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+      
+      // Musobaqa doirasidagi barcha bajarilgan kunlarni sanash (faqat start va end oralig'ida)
+      return {
+        ...row,
+        sender_progress: Math.min(100, Math.round((parseInt(row.sender_done_count || 0) / totalDays) * 100)),
+        receiver_progress: Math.min(100, Math.round((parseInt(row.receiver_done_count || 0) / totalDays) * 100))
+      };
+    });
     
     res.json(competitions);
   } catch (err) { res.status(500).json({ error: err.message }); }
