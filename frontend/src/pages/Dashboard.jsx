@@ -201,7 +201,7 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex-1 space-y-2 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar">
-                    {/* Only Challenge-linked Habits */}
+                    {/* Only Challenge-linked Habits (at the top) */}
                     {activeHabits.map(function (habit) {
                       var linkedCh = data.challenges.find(function(c) { return String(c.habitId || c.habit_id) === String(habit.id); });
                       
@@ -216,27 +216,29 @@ export default function Dashboard() {
 
                       var done = data.isHabitDone(habit.id, date);
                       return (
-                        <div key={"h-" + habit.id} className="flex items-start gap-2 group mb-2">
-                          <div className="relative flex items-center justify-center">
+                        <div key={"h-" + habit.id} className="flex items-center gap-3 group mb-3 p-1 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all">
+                          <div className="relative flex items-center justify-center shrink-0">
                             <input 
                               type="checkbox" 
                               checked={done} 
                               onChange={function () { data.toggleHabitLog(habit.id, date); }} 
-                              className="habit-check mt-0.5 rounded-full" 
+                              className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-gray-700 checked:bg-green-500 checked:border-green-500 transition-all cursor-pointer appearance-none relative" 
                             />
-                            {done && <Check size={10} className="absolute text-white pointer-events-none" />}
+                            {done && <Check size={14} className="absolute text-white pointer-events-none" strokeWidth={3} />}
                           </div>
-                          <span className={"text-xs leading-relaxed flex-1 flex items-center gap-1.5 " + (done ? "task-completed" : "text-gray-700 dark:text-gray-300 font-medium")}>
-                            <span className="text-amber-500 animate-pulse text-sm">⭐</span>
-                            {habit.name.replace("Chellenj: ", "")}
-                          </span>
+                          <div className="flex-1 flex items-center justify-between min-w-0">
+                            <span className={"text-sm font-bold truncate " + (done ? "text-gray-900 dark:text-gray-100" : "text-gray-800 dark:text-gray-200")}>
+                              {habit.name.replace("Chellenj: ", "")}
+                            </span>
+                            <span className="text-xl shrink-0 animate-pulse drop-shadow-sm ml-2">⭐</span>
+                          </div>
                         </div>
                       );
                     })}
 
                     {/* Divider if both exist */}
                     {data.challenges.some(c => c.status === 'active') && dayTasks.length > 0 && (
-                      <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-1" />
+                      <div className="h-px bg-gray-100 dark:bg-gray-800 my-3 mx-1" />
                     )}
 
                     {/* Regular Tasks */}
