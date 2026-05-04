@@ -201,19 +201,19 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex-1 space-y-2 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar">
-                    {/* Habits (including Challenges) */}
+                    {/* Only Challenge-linked Habits */}
                     {activeHabits.map(function (habit) {
                       var linkedCh = data.challenges.find(function(c) { return String(c.habitId || c.habit_id) === String(habit.id); });
                       
-                      // If it's a challenge, check date range
-                      if (linkedCh) {
-                        if (linkedCh.status !== 'active') return null;
-                        var start = new Date(linkedCh.startDate || linkedCh.start_date);
-                        var end = new Date(linkedCh.endDate || linkedCh.end_date);
-                        var d = new Date(date);
-                        d.setHours(0,0,0,0);
-                        if (d < start || d > end) return null;
-                      }
+                      // MUST be a challenge
+                      if (!linkedCh) return null;
+                      
+                      if (linkedCh.status !== 'active') return null;
+                      var start = new Date(linkedCh.startDate || linkedCh.start_date);
+                      var end = new Date(linkedCh.endDate || linkedCh.end_date);
+                      var d = new Date(date);
+                      d.setHours(0,0,0,0);
+                      if (d < start || d > end) return null;
 
                       var done = data.isHabitDone(habit.id, date);
                       return (
@@ -228,7 +228,7 @@ export default function Dashboard() {
                             {done && <Check size={10} className="absolute text-white pointer-events-none" />}
                           </div>
                           <span className={"text-xs leading-relaxed flex-1 flex items-center gap-1.5 " + (done ? "task-completed" : "text-gray-700 dark:text-gray-300")}>
-                            {linkedCh && <span className="text-amber-500 animate-pulse">⭐</span>}
+                            <span className="text-amber-500 animate-pulse">⭐</span>
                             {habit.name.replace("Chellenj: ", "")}
                           </span>
                         </div>
@@ -236,7 +236,7 @@ export default function Dashboard() {
                     })}
 
                     {/* Divider if both exist */}
-                    {activeHabits.length > 0 && dayTasks.length > 0 && (
+                    {data.challenges.some(c => c.status === 'active') && dayTasks.length > 0 && (
                       <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-1" />
                     )}
 
