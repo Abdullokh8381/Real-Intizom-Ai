@@ -215,6 +215,7 @@ export function DataProvider({ children, userId, token }) {
     } catch (err) {
       return { success: false, error: err.message };
     }
+  }
   async function addChallenge(data) {
     try {
       const res = await fetch(`${API_BASE}/challenges`, {
