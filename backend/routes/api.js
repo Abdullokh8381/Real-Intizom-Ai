@@ -204,11 +204,13 @@ router.get('/challenges/:userId', authenticateToken, async (req, res) => {
 
 router.post('/challenges', authenticateToken, async (req, res) => {
   try {
-    const { user_id, name, description, duration_days, quantity_label } = req.body;
+    const { user_id, name, description, duration_days, quantity_label, start_date, end_date } = req.body;
     if (req.user.id != user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+    
+    const status = start_date ? 'active' : 'not_started';
     const result = await db.query(
-      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [user_id, name, description, duration_days, quantity_label, 'not_started']
+      'INSERT INTO challenges (user_id, name, description, duration_days, quantity_label, status, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [user_id, name, description, duration_days, quantity_label, status, start_date, end_date]
     );
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: err.message }); }

@@ -20,6 +20,8 @@ export default function Challenges() {
   var [formDesc, setFormDesc] = useState("");
   var [formDays, setFormDays] = useState(30);
   var [formQty, setFormQty] = useState("");
+  var [formStart, setFormStart] = useState("");
+  var [formEnd, setFormEnd] = useState("");
 
   function openPreset(preset) {
     setFormName(preset.name);
@@ -41,11 +43,13 @@ export default function Challenges() {
         name: formName.trim(), 
         description: formDesc, 
         durationDays: Number(formDays), 
-        quantityLabel: formQty 
+        quantityLabel: formQty,
+        startDate: formStart,
+        endDate: formEnd
       });
       toast.success("Chellenj muvaffaqiyatli qo'shildi!");
       setShowModal(false);
-      setFormName(""); setFormDesc(""); setFormDays(30); setFormQty("");
+      setFormName(""); setFormDesc(""); setFormDays(30); setFormQty(""); setFormStart(""); setFormEnd("");
     } catch (err) {
       toast.error("Xatolik yuz berdi");
       console.error(err);
@@ -223,6 +227,16 @@ export default function Challenges() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Miqdor</label>
                     <input type="text" value={formQty} onChange={function (e) { setFormQty(e.target.value); }} className="input" placeholder="10,000 qadam" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Boshlanish sanasi</label>
+                    <input type="date" value={formStart} onChange={function (e) { setFormStart(e.target.value); }} className="input text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tugash sanasi</label>
+                    <input type="date" value={formEnd} onChange={function (e) { setFormEnd(e.target.value); }} className="input text-sm" />
                   </div>
                 </div>
                 <div className="flex gap-3 pt-2">

@@ -221,7 +221,15 @@ export function DataProvider({ children, userId, token }) {
       const res = await fetch(`${API_BASE}/challenges`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ user_id: userId, name: data.name, description: data.description, duration_days: data.durationDays, quantity_label: data.quantityLabel })
+        body: JSON.stringify({ 
+          user_id: userId, 
+          name: data.name, 
+          description: data.description, 
+          duration_days: data.durationDays, 
+          quantity_label: data.quantityLabel,
+          start_date: data.startDate,
+          end_date: data.endDate
+        })
       });
       const newCh = await res.json();
       if (newCh.id) {
