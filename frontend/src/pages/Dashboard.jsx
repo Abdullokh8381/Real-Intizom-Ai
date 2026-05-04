@@ -205,10 +205,9 @@ export default function Dashboard() {
                     {activeHabits.map(function (habit) {
                       var linkedCh = data.challenges.find(function(c) { return String(c.habitId || c.habit_id) === String(habit.id); });
                       
-                      // MUST be a challenge
                       if (!linkedCh) return null;
-                      
                       if (linkedCh.status !== 'active') return null;
+                      
                       var start = new Date(linkedCh.startDate || linkedCh.start_date);
                       var end = new Date(linkedCh.endDate || linkedCh.end_date);
                       var d = new Date(date);
@@ -217,18 +216,18 @@ export default function Dashboard() {
 
                       var done = data.isHabitDone(habit.id, date);
                       return (
-                        <div key={"h-" + habit.id} className="flex items-start gap-2 group animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div key={"h-" + habit.id} className="flex items-start gap-2 group mb-2">
                           <div className="relative flex items-center justify-center">
                             <input 
                               type="checkbox" 
                               checked={done} 
                               onChange={function () { data.toggleHabitLog(habit.id, date); }} 
-                              className="habit-check mt-0.5" 
+                              className="habit-check mt-0.5 rounded-full" 
                             />
                             {done && <Check size={10} className="absolute text-white pointer-events-none" />}
                           </div>
-                          <span className={"text-xs leading-relaxed flex-1 flex items-center gap-1.5 " + (done ? "task-completed" : "text-gray-700 dark:text-gray-300")}>
-                            <span className="text-amber-500 animate-pulse">⭐</span>
+                          <span className={"text-xs leading-relaxed flex-1 flex items-center gap-1.5 " + (done ? "task-completed" : "text-gray-700 dark:text-gray-300 font-medium")}>
+                            <span className="text-amber-500 animate-pulse text-sm">⭐</span>
                             {habit.name.replace("Chellenj: ", "")}
                           </span>
                         </div>
