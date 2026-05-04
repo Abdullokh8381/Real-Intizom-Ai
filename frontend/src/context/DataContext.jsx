@@ -143,6 +143,10 @@ export function DataProvider({ children, userId, token }) {
       setHabitLogs(prev => prev.map(l => 
         (String(l.habitId) === String(habitId) && l.logDate === logDate) ? { ...updatedLog, habitId: updatedLog.habit_id, logDate: updatedLog.log_date, isDone: updatedLog.is_done } : l
       ));
+
+      // Musobaqa progressini yangilash uchun ma'lumotlarni qayta yuklaymiz
+      const compRes = await fetch(`${API_BASE}/competitions/${userId}`, { headers: getHeaders() }).then(r => r.json());
+      setCompetitions(Array.isArray(compRes) ? compRes : []);
     } catch (err) { 
       console.error(err);
       loadData(); // Xato bo'lsa ma'lumotlarni qayta yuklaymiz
