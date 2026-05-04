@@ -63,11 +63,15 @@ export default function Challenges() {
   }
 
   function daysInfo(ch) {
-    if (ch.status !== "active") return null;
+    if (ch.status !== "active" || !ch.startDate) return null;
     var start = new Date(ch.startDate);
     var end = new Date(ch.endDate);
     var today = new Date();
-    return { passed: differenceInDays(today, start) + 1, left: Math.max(0, differenceInDays(end, today)) };
+    today.setHours(0, 0, 0, 0);
+    return { 
+      passed: Math.max(0, differenceInDays(today, start) + 1), 
+      left: Math.max(0, differenceInDays(end, today)) 
+    };
   }
 
   return (
@@ -89,40 +93,81 @@ export default function Challenges() {
           <p className="text-gray-400 text-sm mt-1">Yangi chellenj yarating yoki shablonlardan tanlang</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {data.challenges.map(function (ch) {
+            // Normalize fields for consistency
+            const chNorm = {
+              ...ch,
+              durationDays: ch.durationDays || ch.duration_days,
+              startDate: ch.startDate || ch.start_date,
+              endDate: ch.endDate || ch.end_date,
+              quantityLabel: ch.quantityLabel || ch.quantity_label
+            };
+            
             var progress = data.getChallengeProgress(ch.id);
             var badge = statusBadge(ch.status);
-            var info = daysInfo(ch);
+            var info = daysInfo(chNorm);
+            
             return (
-              <div key={ch.id} onClick={function () { setDetail(ch); }} className="card cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden">
-                <div className="absolute top-3 right-3">
-                  <span className={"inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold " + badge.cls}>{badge.txt}</span>
+              <div key={ch.id} onClick={function () { setDetail(chNorm); }} className="group bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6 hover:shadow-2xl hover:shadow-primary-500/10 transition-all duration-500 cursor-pointer flex flex-col h-full relative overflow-hidden">
+                {/* Status Badge */}
+                <div className="absolute top-6 right-6">
+                  <span className={"px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider " + badge.cls}>{badge.txt}</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 pr-24 mb-1">{ch.name}</h3>
-                {ch.quantityLabel && <p className="text-sm text-primary-600 font-medium">{ch.quantityLabel}</p>}
-                {ch.description && <p className="text-sm text-gray-500 mt-2 line-clamp-2">{ch.description}</p>}
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{progress.completed + "/" + progress.total + " kun"}</span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{progress.percentage}%</span>
+
+                {/* Date Badges */}
+                {chNorm.startDate && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-full text-[10px] font-black uppercase tracking-wider border border-gray-100 dark:border-gray-700">
+                      <Calendar size={12} className="text-primary-500" />
+                      {chNorm.startDate}
+                    </div>
+                    {chNorm.endDate && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-wider border border-amber-100 dark:border-amber-900/30">
+                        <Clock size={12} />
+                        {chNorm.endDate}
+                      </div>
+                    )}
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                    <div className="progress-bar h-2.5 bg-green-500" style={{ width: progress.percentage + "%" }} />
+                )}
+
+                <h3 className="text-xl font-black text-gray-900 dark:text-gray-100 mb-1 group-hover:text-primary-600 transition-colors pr-16">{ch.name}</h3>
+                {chNorm.quantityLabel && <p className="text-sm text-primary-600 font-bold mb-3">{chNorm.quantityLabel}</p>}
+                
+                <div className="flex-1">
+                  {ch.description && <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">{ch.description}</p>}
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <div className="flex justify-between items-end">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progress</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{progress.completed} / {chNorm.durationDays} kun</span>
+                    </div>
+                    <span className="text-2xl font-black text-primary-600 italic leading-none">{progress.percentage}%</span>
                   </div>
+                  
+                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full transition-all duration-1000" 
+                      style={{ width: progress.percentage + "%" }} 
+                    />
+                  </div>
+
                   {info && (
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>{info.passed + " kun otdi"}</span>
-                      <span>{info.left + " kun qoldi"}</span>
+                    <div className="flex justify-between text-[10px] font-black text-gray-400 uppercase tracking-widest pt-1">
+                      <span>{info.passed} KUN O'TDI</span>
+                      <span>{info.left} KUN QOLDI</span>
                     </div>
                   )}
                 </div>
+
                 {ch.status === "not_started" && (
                   <button
                     onClick={function (e) { e.stopPropagation(); data.startChallenge(ch.id); }}
-                    className="mt-3 btn btn-primary w-full flex items-center justify-center gap-2"
+                    className="mt-6 btn bg-primary-500 hover:bg-primary-600 text-white w-full py-3 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-primary-500/20 active:scale-95 transition-all"
                   >
-                    <Play size={16} /> Boshlash
+                    <Play size={18} fill="currentColor" /> BOSHLASH
                   </button>
                 )}
               </div>
