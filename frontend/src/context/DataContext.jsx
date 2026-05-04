@@ -30,7 +30,7 @@ export function DataProvider({ children, userId, token }) {
     }
     setLoading(true);
     try {
-      const fetchJson = (url) => fetch(url, { headers: getHeaders() }).then(r => r.ok ? r.json() : []);
+      const fetchJson = (url) => fetch(`${url}?t=${Date.now()}`, { headers: getHeaders() }).then(r => r.ok ? r.json() : []);
 
       const [tRes, hRes, lRes, cRes, compRes] = await Promise.all([
         fetchJson(`${API_BASE}/tasks/${userId}`),
@@ -145,7 +145,7 @@ export function DataProvider({ children, userId, token }) {
       ));
 
       // Musobaqa progressini yangilash uchun ma'lumotlarni qayta yuklaymiz
-      const compRes = await fetch(`${API_BASE}/competitions/${userId}`, { headers: getHeaders() }).then(r => r.json());
+      const compRes = await fetch(`${API_BASE}/competitions/${userId}?t=${Date.now()}`, { headers: getHeaders() }).then(r => r.json());
       setCompetitions(Array.isArray(compRes) ? compRes : []);
     } catch (err) { 
       console.error(err);
@@ -227,14 +227,15 @@ export function DataProvider({ children, userId, token }) {
     };
   }
 
-  const value = {
+  const value = useMemo(() => ({
     tasks, habits, habitLogs, challenges, competitions, loading,
     addTask, toggleTask, deleteTask, getDayStats,
     addHabit, updateHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
     searchUserByEmail, sendCompetitionInvite, respondToCompetition,
+    loadData,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
-  };
+  }), [tasks, habits, habitLogs, challenges, competitions, loading, addTask, toggleTask, deleteTask, addHabit, updateHabit, deleteHabit, toggleHabitLog, searchUserByEmail, sendCompetitionInvite, respondToCompetition, loadData]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

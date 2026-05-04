@@ -9,13 +9,13 @@ export default function Competition() {
   const data = useData();
   const [showModal, setShowModal] = useState(false);
 
-  // Do'stlar natijasini avtomatik yangilab turish (Polling)
+  // Do'stlar natijasini avtomatik yangilab turish (Polling - har 3 soniyada)
   useEffect(() => {
     const interval = setInterval(() => {
       data.loadData();
-    }, 10000); // Har 10 soniyada yangilaydi
+    }, 3000); 
     return () => clearInterval(interval);
-  }, [data]);
+  }, [data.loadData]);
   
   // Modal states
   const [title, setTitle] = useState("");
