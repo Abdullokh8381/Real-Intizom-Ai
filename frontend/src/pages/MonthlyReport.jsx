@@ -29,7 +29,14 @@ export default function MonthlyReport() {
 
   var habitStats = useMemo(function () {
     var monthDays = daysInMonth.map(function (d) { return format(d, "yyyy-MM-dd"); });
-    return data.habits.filter(function (h) { return h.isActive; }).map(function (habit) {
+    return data.habits.filter(function (h) { 
+      var isLinkedToChallenge = data.challenges.some(function(c) { 
+        return String(c.habitId || c.habit_id) === String(h.id); 
+      });
+      var hasChallengeName = h.name.startsWith("Chellenj: ");
+      var hasCompetitionName = h.name.startsWith("Musobaqa: ");
+      return h.isActive && !isLinkedToChallenge && !hasChallengeName && !hasCompetitionName;
+    }).map(function (habit) {
       var logs = data.habitLogs.filter(function (l) { return l.habitId === habit.id && monthDays.indexOf(l.logDate) >= 0 && l.isDone; });
       var total = daysInMonth.length;
       return { id: habit.id, name: habit.name, color: habit.color, completed: logs.length, total: total, percentage: Math.round((logs.length / total) * 100) };
