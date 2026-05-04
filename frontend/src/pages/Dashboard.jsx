@@ -200,10 +200,47 @@ export default function Dashboard() {
                     <CircularProgress percentage={stats.percentage} size={36} strokeWidth={3} />
                   </div>
 
-                  <div className="flex-1 space-y-2 overflow-y-auto max-h-[200px] pr-1 custom-scrollbar">
-                    {dayTasks.length === 0 && addingDay !== dayIndex && (
-                      <p className="text-[10px] text-gray-300 text-center py-4 italic">Vazifalar yo'q</p>
+                  <div className="flex-1 space-y-2 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar">
+                    {/* Habits (including Challenges) */}
+                    {activeHabits.map(function (habit) {
+                      var linkedCh = data.challenges.find(function(c) { return String(c.habitId || c.habit_id) === String(habit.id); });
+                      
+                      // If it's a challenge, check date range
+                      if (linkedCh) {
+                        if (linkedCh.status !== 'active') return null;
+                        var start = new Date(linkedCh.startDate || linkedCh.start_date);
+                        var end = new Date(linkedCh.endDate || linkedCh.end_date);
+                        var d = new Date(date);
+                        d.setHours(0,0,0,0);
+                        if (d < start || d > end) return null;
+                      }
+
+                      var done = data.isHabitDone(habit.id, date);
+                      return (
+                        <div key={"h-" + habit.id} className="flex items-start gap-2 group animate-in fade-in slide-in-from-left-2 duration-300">
+                          <div className="relative flex items-center justify-center">
+                            <input 
+                              type="checkbox" 
+                              checked={done} 
+                              onChange={function () { data.toggleHabitLog(habit.id, date); }} 
+                              className="habit-check mt-0.5" 
+                            />
+                            {done && <Check size={10} className="absolute text-white pointer-events-none" />}
+                          </div>
+                          <span className={"text-xs leading-relaxed flex-1 flex items-center gap-1.5 " + (done ? "task-completed" : "text-gray-700 dark:text-gray-300")}>
+                            {linkedCh && <span className="text-amber-500 animate-pulse">⭐</span>}
+                            {habit.name.replace("Chellenj: ", "")}
+                          </span>
+                        </div>
+                      );
+                    })}
+
+                    {/* Divider if both exist */}
+                    {activeHabits.length > 0 && dayTasks.length > 0 && (
+                      <div className="h-px bg-gray-100 dark:bg-gray-800 my-2 mx-1" />
                     )}
+
+                    {/* Regular Tasks */}
                     {dayTasks.map(function (task) {
                       return (
                         <div key={task.id} className="flex items-start gap-2 group">
