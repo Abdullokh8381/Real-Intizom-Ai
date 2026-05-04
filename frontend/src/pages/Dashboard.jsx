@@ -332,7 +332,13 @@ export default function Dashboard() {
             <div className="p-5 space-y-6">
               {(function() {
                 var regularHabits = activeHabits.filter(function(h) {
-                  return !data.challenges.some(function(c) { return String(c.habitId || c.habit_id) === String(h.id); });
+                  var isLinkedToChallenge = data.challenges.some(function(c) { 
+                    return String(c.habitId || c.habit_id) === String(h.id); 
+                  });
+                  var isChallengeName = h.name.startsWith("Chellenj: ");
+                  var isCompetitionName = h.name.startsWith("Musobaqa: ");
+                  
+                  return !isLinkedToChallenge && !isChallengeName && !isCompetitionName;
                 });
 
                 if (regularHabits.length === 0) {
