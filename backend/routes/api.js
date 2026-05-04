@@ -231,22 +231,14 @@ router.get('/competitions/:userId', authenticateToken, async (req, res) => {
   try {
     if (req.user.id != req.params.userId) return res.status(403).json({ error: "Ruxsat yo'q" });
     
-    // Musobaqa davomiyligi va bajarilgan kunlarni hisoblash
+    // Musobaqa davomiyligi bo'yicha natijalarni hisoblaymiz
     const result = await db.query(`
       SELECT c.*, 
              u1.name as sender_name, u1.email as sender_email,
              u2.name as receiver_name, u2.email as receiver_email,
-             (c.end_date::date - c.start_date::date + 1) as total_days,
-             (SELECT count(*) FROM habit_logs 
-              WHERE habit_id = c.sender_habit_id 
-              AND is_done = true 
-              AND log_date >= c.start_date
-              AND log_date <= c.end_date) as sender_done_count,
-             (SELECT count(*) FROM habit_logs 
-              WHERE habit_id = c.receiver_habit_id 
-              AND is_done = true 
-              AND log_date >= c.start_date
-              AND log_date <= c.end_date) as receiver_done_count
+             (SELECT count(*) FROM habit_logs WHERE habit_id = c.sender_habit_id AND is_done = true AND log_date BETWEEN c.start_date AND c.end_date) as sender_done_count,
+             (SELECT count(*) FROM habit_logs WHERE habit_id = c.receiver_habit_id AND is_done = true AND log_date BETWEEN c.start_date AND c.end_date) as receiver_done_count,
+             (c.end_date::date - c.start_date::date + 1) as total_days
       FROM competitions c
       JOIN users u1 ON c.sender_id = u1.id
       JOIN users u2 ON c.receiver_id = u2.id
@@ -254,13 +246,15 @@ router.get('/competitions/:userId', authenticateToken, async (req, res) => {
       ORDER BY c.created_at DESC
     `, [req.params.userId]);
     
-    // Foizlarni davomiylikdan kelib chiqib hisoblaymiz
     const competitions = result.rows.map(row => {
-      const totalDays = parseInt(row.total_days) || 1;
+      const total = parseInt(row.total_days || 1);
       return {
         ...row,
-        sender_progress: Math.min(100, Math.round((parseInt(row.sender_done_count || 0) / totalDays) * 100)),
-        receiver_progress: Math.min(100, Math.round((parseInt(row.receiver_done_count || 0) / totalDays) * 100))
+        total_days: total,
+        sender_done_count: parseInt(row.sender_done_count || 0),
+        receiver_done_count: parseInt(row.receiver_done_count || 0),
+        sender_progress: Math.min(100, Math.round((parseInt(row.sender_done_count || 0) / total) * 100)),
+        receiver_progress: Math.min(100, Math.round((parseInt(row.receiver_done_count || 0) / total) * 100))
       };
     });
     

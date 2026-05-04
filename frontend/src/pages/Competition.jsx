@@ -185,6 +185,10 @@ export default function Competition() {
               const myProgress = isSender ? comp.sender_progress : comp.receiver_progress;
               const theirProgress = isSender ? comp.receiver_progress : comp.sender_progress;
               
+              const myDoneDays = isSender ? comp.sender_done_count : comp.receiver_done_count;
+              const theirDoneDays = isSender ? comp.receiver_done_count : comp.sender_done_count;
+              const totalDays = comp.total_days;
+              
               const iAmLeader = myProgress >= theirProgress;
               const draw = myProgress === theirProgress && myProgress > 0;
 
@@ -233,7 +237,7 @@ export default function Competition() {
                                 style={{ width: `${myProgress}%` }}
                               />
                             </div>
-                            <p className={`text-xl font-black ${iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{myProgress}%</p>
+                            <p className={`text-xl font-black ${iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{myDoneDays} / {totalDays} kun</p>
                           </div>
                         </div>
                       </div>
@@ -257,7 +261,7 @@ export default function Competition() {
                                 style={{ width: `${theirProgress}%` }}
                               />
                             </div>
-                            <p className={`text-xl font-black ${!iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{theirProgress}%</p>
+                            <p className={`text-xl font-black ${!iAmLeader ? "text-amber-600" : "text-primary-600"}`}>{theirDoneDays} / {totalDays} kun</p>
                           </div>
                         </div>
                       </div>
