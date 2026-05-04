@@ -254,17 +254,17 @@ export default function Dashboard() {
 
           {/* New Challenges Section */}
           <div className="card shadow-xl border-gray-100 dark:border-gray-800 overflow-hidden p-0">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4">
-              <h2 className="text-white font-bold flex items-center gap-2">
-                <Trophy size={20} />
+            <div className="bg-primary-600 p-3">
+              <h2 className="text-white text-sm font-bold flex items-center gap-2">
+                <Trophy size={18} />
                 Haftalik Chellenjlar
               </h2>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {activeChallenges.length === 0 ? (
-                <div className="col-span-full text-center py-10">
-                  <p className="text-sm font-medium text-gray-400">Faol chellenjlar yo'q</p>
-                  <button onClick={function() { navigate('/challenges') }} className="mt-3 text-xs text-amber-600 font-bold hover:underline uppercase tracking-wider">YANGI QO'SHISH</button>
+                <div className="col-span-full text-center py-6">
+                  <p className="text-xs font-medium text-gray-400">Faol chellenjlar yo'q</p>
+                  <button onClick={function() { navigate('/challenges') }} className="mt-2 text-xs text-primary-600 font-bold hover:underline uppercase tracking-wider">YANGI QO'SHISH</button>
                 </div>
               ) : (
                 activeChallenges.map(function (ch) {
@@ -272,21 +272,19 @@ export default function Dashboard() {
                   var progress = habitId ? data.getHabitWeekProgress(habitId, currentWeek) : { percentage: 0 };
                   
                   return (
-                    <div key={ch.id} className="space-y-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 group hover:shadow-lg transition-all duration-300">
+                    <div key={ch.id} className="space-y-3 p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 group hover:border-primary-200 transition-all duration-300">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-2xl animate-pulse">⭐</span>
-                          <div>
-                            <span className="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-tight">{ch.name}</span>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{ch.quantity_label || ch.quantityLabel}</p>
+                          <span className="text-lg shrink-0">⭐</span>
+                          <div className="min-w-0">
+                            <span className="text-[11px] font-black text-gray-900 dark:text-gray-100 uppercase truncate block">{ch.name}</span>
+                            <p className="text-[9px] text-gray-400 font-bold truncate">{ch.quantity_label || ch.quantityLabel}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className="text-lg font-black text-amber-600 italic">{progress.percentage}%</span>
-                        </div>
+                        <span className="text-xs font-black text-primary-600">{progress.percentage}%</span>
                       </div>
                       
-                      <div className="flex justify-between gap-1.5">
+                      <div className="flex justify-between gap-1">
                         {weekDates.map(function (date, i) {
                           var done = habitId ? data.isHabitDone(habitId, date) : false;
                           return (
@@ -295,10 +293,10 @@ export default function Dashboard() {
                               disabled={!habitId}
                               onClick={function () { if (habitId) data.toggleHabitLog(habitId, date); }}
                               className={
-                                "flex-1 h-10 rounded-xl text-[10px] font-black transition-all border-2 " + 
+                                "flex-1 h-7 rounded-lg text-[9px] font-black transition-all border " + 
                                 (done 
-                                  ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20 scale-105" 
-                                  : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-400 hover:border-amber-200"
+                                  ? "bg-primary-500 border-primary-500 text-white shadow-sm" 
+                                  : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 hover:border-primary-300"
                                 )
                               }
                             >
@@ -308,9 +306,9 @@ export default function Dashboard() {
                         })}
                       </div>
 
-                      <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000" 
+                          className="h-full bg-primary-500 transition-all duration-1000" 
                           style={{ width: progress.percentage + "%" }} 
                         />
                       </div>
