@@ -60,3 +60,12 @@ CREATE TABLE challenge_logs (
   is_done BOOLEAN DEFAULT true,
   UNIQUE(challenge_id, log_date)
 );
+-- Eslatmalar jadvali
+CREATE TABLE notes (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255),
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 const AuthContext = createContext(null);
-const API_BASE = "https://intizom-backend-ibcz.onrender.com/api";
+const API_BASE = "http://localhost:5001/api";
+
 
 export function useAuth() {
   const ctx = useContext(AuthContext);

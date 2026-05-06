@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   Leaf,
+  StickyNote,
 } from "lucide-react";
 import Logo from "./Logo";
 
@@ -24,6 +25,7 @@ var NAV_ITEMS = [
   { to: "/habits", icon: ListChecks, label: "Odatlar" },
   { to: "/challenges", icon: Trophy, label: "Chellenjlar" },
   { to: "/competition", icon: Users, label: "Musobaqa" },
+  { to: "/notes", icon: StickyNote, label: "Eslatmalar" },
   { to: "/profile", icon: User, label: "Profil" },
 ];
 

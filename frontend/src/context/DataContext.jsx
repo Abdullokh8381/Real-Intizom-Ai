@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { startOfWeek, format, isSameDay } from "date-fns";
 
 const DataContext = createContext(null);
-const API_BASE = "https://intizom-backend-ibcz.onrender.com/api";
+const API_BASE = "http://localhost:5001/api";
+
 
 export function useData() {
   const ctx = useContext(DataContext);
@@ -16,6 +17,8 @@ export function DataProvider({ children, userId, token }) {
   const [habitLogs, setHabitLogs] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [competitions, setCompetitions] = useState([]);
+  const [notes, setNotes] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const getHeaders = useCallback(() => ({
@@ -32,12 +35,13 @@ export function DataProvider({ children, userId, token }) {
     try {
       const fetchJson = (url) => fetch(`${url}?t=${Date.now()}`, { headers: getHeaders() }).then(r => r.ok ? r.json() : []);
 
-      const [tRes, hRes, lRes, cRes, compRes] = await Promise.all([
+      const [tRes, hRes, lRes, cRes, compRes, nRes] = await Promise.all([
         fetchJson(`${API_BASE}/tasks/${userId}`),
         fetchJson(`${API_BASE}/habits/${userId}`),
         fetchJson(`${API_BASE}/habit-logs/${userId}`),
         fetchJson(`${API_BASE}/challenges/${userId}`),
-        fetchJson(`${API_BASE}/competitions/${userId}`)
+        fetchJson(`${API_BASE}/competitions/${userId}`),
+        fetchJson(`${API_BASE}/notes/${userId}`)
       ]);
       
       setTasks(Array.isArray(tRes) ? tRes.map(t => ({ ...t, isCompleted: t.is_completed, dayOfWeek: t.day_of_week, weekStart: t.week_start })) : []);
@@ -45,6 +49,7 @@ export function DataProvider({ children, userId, token }) {
       setHabitLogs(Array.isArray(lRes) ? lRes.map(l => ({ ...l, habitId: l.habit_id, logDate: l.log_date, isDone: l.is_done })) : []);
       setChallenges(Array.isArray(cRes) ? cRes : []);
       setCompetitions(Array.isArray(compRes) ? compRes : []);
+      setNotes(Array.isArray(nRes) ? nRes : []);
     } catch (err) {
       console.error("Yuklashda xato:", err);
     } finally {
@@ -302,16 +307,55 @@ export function DataProvider({ children, userId, token }) {
     };
   }
 
+  // Notes
+  async function addNote(title, content) {
+    try {
+      const res = await fetch(`${API_BASE}/notes`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ user_id: userId, title, content })
+      });
+      const newNote = await res.json();
+      if (newNote.id) {
+        setNotes(prev => [newNote, ...prev]);
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  async function updateNote(noteId, title, content) {
+    try {
+      const res = await fetch(`${API_BASE}/notes/${noteId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ title, content })
+      });
+      const updated = await res.json();
+      setNotes(prev => prev.map(n => n.id === noteId ? updated : n));
+    } catch (err) { console.error(err); }
+  }
+
+  async function deleteNote(noteId) {
+    if (!noteId) return;
+    try {
+      setNotes(prev => prev.filter(n => Number(n.id) !== Number(noteId)));
+      await fetch(`${API_BASE}/notes/${noteId}`, { method: 'DELETE', headers: getHeaders() });
+    } catch (err) { 
+      console.error("O'chirishda xato:", err);
+      loadData(); // Xato bo'lsa qayta yuklaymiz
+    }
+  }
+
   const value = useMemo(() => ({
-    tasks, habits, habitLogs, challenges, competitions, loading,
+    tasks, habits, habitLogs, challenges, competitions, notes, loading,
     addTask, toggleTask, deleteTask, getDayStats,
     addHabit, updateHabit, deleteHabit, toggleHabitLog, isHabitDone, getHabitWeekProgress,
     addChallenge, startChallenge, deleteChallenge, getChallengeProgress,
     searchUserByEmail, sendCompetitionInvite, respondToCompetition,
+    addNote, updateNote, deleteNote,
     loadData,
     getWeekStart: (date) => format(startOfWeek(date || new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd"),
     getWeekTasks: (weekStart) => tasks.filter((t) => t.weekStart === weekStart),
-  }), [tasks, habits, habitLogs, challenges, competitions, loading, addTask, toggleTask, deleteTask, addHabit, updateHabit, deleteHabit, toggleHabitLog, addChallenge, startChallenge, deleteChallenge, searchUserByEmail, sendCompetitionInvite, respondToCompetition, loadData]);
+  }), [tasks, habits, habitLogs, challenges, competitions, notes, loading, addTask, toggleTask, deleteTask, addHabit, updateHabit, deleteHabit, toggleHabitLog, addChallenge, startChallenge, deleteChallenge, searchUserByEmail, sendCompetitionInvite, respondToCompetition, addNote, updateNote, deleteNote, loadData]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

@@ -377,4 +377,53 @@ router.put('/competitions/:id/status', authenticateToken, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── ESLATMALAR (NOTES) ─────────────────────────
+
+router.get('/notes/:userId', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.id != req.params.userId) return res.status(403).json({ error: "Ruxsat yo'q" });
+    const result = await db.query('SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC', [req.params.userId]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/notes', authenticateToken, async (req, res) => {
+  try {
+    const { user_id, title, content } = req.body;
+    if (req.user.id != user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+    const result = await db.query(
+      'INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *',
+      [user_id, title, content]
+    );
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/notes/:id', authenticateToken, async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    const noteCheck = await db.query('SELECT user_id FROM notes WHERE id = $1', [req.params.id]);
+    if (noteCheck.rows.length === 0) return res.status(404).json({ error: "Eslatma topilmadi" });
+    if (req.user.id != noteCheck.rows[0].user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+
+    const result = await db.query(
+      'UPDATE notes SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+      [title, content, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/notes/:id', authenticateToken, async (req, res) => {
+  try {
+    const noteCheck = await db.query('SELECT user_id FROM notes WHERE id = $1', [req.params.id]);
+    if (noteCheck.rows.length === 0) return res.status(404).json({ error: "Eslatma topilmadi" });
+    if (req.user.id != noteCheck.rows[0].user_id) return res.status(403).json({ error: "Ruxsat yo'q" });
+
+    await db.query('DELETE FROM notes WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
+

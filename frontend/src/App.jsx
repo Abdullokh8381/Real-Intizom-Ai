@@ -16,6 +16,8 @@ var HabitsList = lazy(function () { return import("./pages/HabitsList"); });
 var Challenges = lazy(function () { return import("./pages/Challenges"); });
 var Competition = lazy(function () { return import("./pages/Competition"); });
 var Profile = lazy(function () { return import("./pages/Profile"); });
+var Notes = lazy(function () { return import("./pages/Notes"); });
+
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -93,6 +95,8 @@ function AppContent() {
               <Route path="challenges" element={<Challenges />} />
               <Route path="competition" element={<Competition />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="notes" element={<Notes />} />
+
             </Route>
           </Routes>
         </Suspense>
