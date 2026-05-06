@@ -2,7 +2,9 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { startOfWeek, format, isSameDay } from "date-fns";
 
 const DataContext = createContext(null);
-const API_BASE = "http://localhost:5001/api";
+const API_BASE = window.location.hostname === 'localhost' 
+  ? "http://localhost:5001/api" 
+  : "https://intizom-backend-ibcz.onrender.com/api";
 
 
 export function useData() {
